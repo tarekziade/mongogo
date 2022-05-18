@@ -15,9 +15,9 @@ end
 class ElasticConfig
   def read
     {
-      :auth_token => 'secret',
-      :indexing_rules => {
-        :max_price => 34000
+      auth_token: 'secret',
+      indexing_rules: {
+        max_price: 34_000
       }
     }
   end
