@@ -14,6 +14,11 @@ end
 # Things like auth tokens, indexing rules, etc.
 class ElasticConfig
   def read
-    {}
+    {
+      :auth_token => 'secret',
+      :indexing_rules => {
+        :max_price => 34000
+      }
+    }
   end
 end

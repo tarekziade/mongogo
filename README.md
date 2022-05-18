@@ -13,7 +13,7 @@ How the service works:
 
 - `SyncService` gets triggered on `GET /start`
 - `SyncService` creates a sync job and return immediatly an id
-- `SyncJob` can pick running info from `ElasticConfig`
+- `SyncJob` can pick running info from `ElasticConfig` to know how to run
 - `SyncJob` uses `MongoBackend` to get documents
 - `SyncJob` updates its status on a regulare basis
 - `SyncJob` sends documents to `ElasticDB`

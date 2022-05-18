@@ -15,11 +15,17 @@ class SyncJob
 
   def run
     @status[:status] = 'started'
-    # XXX we can get some info from @configuration on what to do
+    puts('Grabbing configuration')
+    config = @configuration.read
+
     @data_source.documents.each do |doc|
-      @status[:documents].push(doc)
-      @status_callback.call(@status)
+      # filter!
+      if doc[:price] < config[:indexing_rules][:max_price]
+        @status[:documents].push(doc)
+        @status_callback.call(@status)
+      end
     end
+
     @status[:status] = 'finished'
     @status_callback.call(@status)
   end

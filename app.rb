@@ -44,11 +44,12 @@ class SyncService < Sinatra::Base
   end
 
   def status_callback(status)
-    puts('called back')
     job_id = status[:job].id
     puts("Job #{job_id} - #{status[:status]}")
     settings.results[job_id] = status
     settings.database.write(status[:documents])
+    # XXX use a thread safe queue
+    status[:documents] = []
   end
 
   # when using Puma, this creates a new thread -- which is not required since
