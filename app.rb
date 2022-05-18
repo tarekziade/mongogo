@@ -21,7 +21,7 @@ require_relative 'elasticdb'
 require_relative 'mongodb'
 
 # Sinatra app
-class ConnectorsWebApp < Sinatra::Base
+class SyncService < Sinatra::Base
   register Sinatra::ConfigFile
   config_file File.join(__dir__, 'config.yml')
 
