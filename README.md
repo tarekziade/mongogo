@@ -4,8 +4,11 @@
 
 Use the Makefile:
 
-  make install
-  make run
+```
+make install
+make run
+```
+
 
 ## Actors
 
