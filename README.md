@@ -1,6 +1,13 @@
 # mongo
 
-Actors:
+## How to use
+
+Use the Makefile:
+
+  make install
+  make run
+
+## Actors
 
 - `SyncService` -- front end to trigger jobs
 - `SyncJob` -- Sync job that drives a sync
@@ -9,7 +16,7 @@ Actors:
 - `ElasticConfig` -- the configuration DB that provides info, like auth tokensm indexing rules etc
 
 
-How the service works:
+## How the service works
 
 - `SyncService` gets triggered on `GET /start`
 - `SyncService` creates a sync job and return immediatly an id
