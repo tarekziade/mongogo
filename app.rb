@@ -52,6 +52,13 @@ class SyncService < Sinatra::Base
     status[:documents] = []
   end
 
+  get '/' do
+    json(
+      title: "Hey, I ingest data from MongoDB, trigger me at http://localhost:9292/start",
+    )
+  end
+
+
   # when using Puma, this creates a new thread -- which is not required since
   # we handle our own thread for the sync job, but does not hurt
   get '/start' do
