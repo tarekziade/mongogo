@@ -20,7 +20,7 @@ class SyncJob
 
     @data_source.documents.each do |doc|
       # filter!
-      if doc[:price] < config[:indexing_rules][:max_price]
+      if doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
         @status[:documents].push(doc)
         @status_callback.call(@status)
       end

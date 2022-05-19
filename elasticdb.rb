@@ -5,7 +5,7 @@
 class ElasticDB
   def write(documents)
     documents.each do |document|
-      puts("Write in ES #{document}")
+      puts("Write in ES #{document['listing_url']}")
     end
   end
 end
@@ -17,7 +17,7 @@ class ElasticConfig
     {
       auth_token: 'secret',
       indexing_rules: {
-        max_price: 34_000
+        bedrooms: 2
       }
     }
   end

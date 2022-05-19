@@ -2,12 +2,29 @@
 
 ## How to use
 
-Use the Makefile:
+Run MongoDB with Docker:
+```
+./scripts/runmongo.sh
+```
 
+Make sure you populate it with the sample data:
+```
+./scripts/loadsample.sh
+```
+
+The use the Makefile to run the service:
 ```
 make install
 make run
 ```
+
+And start a sync with `http://0.0.0.0:9292/start`
+
+  Install note:
+
+  In case of an error when compiling Puma on macOS Catalina
+  try https://github.com/puma/puma/issues/2544#issuecomment-771345173
+  Use OpenSSL 1.1, not OpenSSL 3.x
 
 
 ## Actors
