@@ -3,11 +3,12 @@
 # This class is in charge of sending documents to Elastic
 # And also in charge of creating an index mapping
 class ElasticDB
-  def write(documents)
-    documents.each do |document|
-      puts("Write in ES #{document['listing_url']}")
-    end
+
+  def push(doc)
+    # XXX we can use the Keep-Alive thing to continuously push I guess
+    puts("Write in ES #{doc['listing_url']}")
   end
+
 end
 
 # This class can be used by a sync Job to read some configuration info

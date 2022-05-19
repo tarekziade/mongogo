@@ -19,11 +19,13 @@ class SyncJob
     puts('Grabbing configuration')
     config = @configuration.read
 
+    current = 0
     @data_source.documents.each do |doc|
       # filter!
       if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
         @documents_queue.push(doc)
-        @status_callback.call(self)
+        current += 1
+        @status_callback.call(self) if current % 10 == 0
       end
     end
 

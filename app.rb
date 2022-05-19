@@ -65,6 +65,7 @@ class SyncService < Sinatra::Base
     settings.pool.post do
       puts("Running #{job.id} in a thread")
       job.run
+      puts('Extraction done.')
     rescue StandardError => e
       puts(e.backtrace)
     end
@@ -77,8 +78,9 @@ class SyncService < Sinatra::Base
           doc = job.documents_queue.pop(false)
           break if doc == 'FINISHED'
           # send in batches
-          settings.database.write([doc])
+          settings.database.push(doc)
         end
+        puts('Ingestion done.')
       rescue StandardError => e
         puts(e.backtrace)
       end
