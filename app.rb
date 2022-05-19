@@ -43,13 +43,9 @@ class SyncService < Sinatra::Base
     super
   end
 
-  def status_callback(status)
-    job_id = status[:job].id
-    puts("Job #{job_id} - #{status[:status]}")
-    settings.results[job_id] = status
-    settings.database.write(status[:documents])
-    # XXX use a thread safe queue
-    status[:documents] = []
+  def status_callback(job)
+    puts("Job #{job.id} - #{job.status}")
+    settings.results[job.id] = { :status => job.status }
   end
 
   get '/' do
@@ -65,9 +61,27 @@ class SyncService < Sinatra::Base
     data_source = MongoBackend.new
     job = SyncJob.new(job_id, data_source, method(:status_callback), settings.config)
 
+    # data grabber
     settings.pool.post do
       puts("Running #{job.id} in a thread")
       job.run
+    rescue StandardError => e
+      puts(e.backtrace)
+    end
+
+    # dequeue worker
+    settings.pool.post do
+      puts('Running the dequeuer in a thread')
+      begin
+        loop do
+          doc = job.documents_queue.pop(false)
+          break if doc == 'FINISHED'
+          # send in batches
+          settings.database.write([doc])
+        end
+      rescue StandardError => e
+        puts(e.backtrace)
+      end
     end
 
     json(

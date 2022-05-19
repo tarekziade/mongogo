@@ -11,7 +11,6 @@ class MongoBackend
   end
 
   def documents
-    puts('Calling Mongo')
     # XXX yield, pagination
     @client[:listingsAndReviews].find
   end
