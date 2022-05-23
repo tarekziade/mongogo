@@ -51,11 +51,14 @@ class SyncJob
     @configuration = configuration
     @dequeuer = nil
     @fetcher = nil
+    @fetched = 0
+  end
+
+  def to_s
+    "Job #{@id[0..7]}/#{@status} ~ fetched #{@fetched} docs"
   end
 
   def close
-    puts(@dequeuer.status)
-    puts(@fetcher.status)
     # XXX cleanup? close connections?
   end
 
@@ -102,13 +105,14 @@ class SyncJob
     @status = WORKING
     puts('Grabbing configuration')
     config = @configuration.read
-
+    index = config[:indexing_rules][:index_target]
     current = 0
     @data_source.documents.each do |doc|
       # filter!
       if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
-        @events_queue.push(AddEvent.new(@id, doc))
+        @events_queue.push(AddEvent.new(@id, { :document => doc, :index => index }))
         current += 1
+        @fetched += 1
       end
     end
 

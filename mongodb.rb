@@ -16,11 +16,8 @@ class MongoBackend
   def documents
     collection = @client[:listingsAndReviews]
 
-    # XXX yield, pagination
-    docs = collection.find
-
-    puts("Read mongo #{docs.count}")
-    docs
+    # XXX yield, pagination, bulk read?
+    collection.find
   end
 
   def close

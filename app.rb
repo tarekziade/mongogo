@@ -36,16 +36,14 @@ class SyncService < Sinatra::Base
   end
 
   def event_callback(event)
+    settings.database.push(event)
     job = settings.jobs.get_job(event.job_id)
+    puts(job.to_s) unless job.finished
 
     if event.instance_of?(FinishedEvent)
-      puts("Job #{job.id} finished")
       job.close
-      return
+      nil
     end
-
-    puts("Job #{job.id} - #{job.status}")
-    settings.database.push(event)
   end
 
   get '/' do

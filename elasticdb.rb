@@ -4,12 +4,23 @@ require_relative 'events'
 # This class is in charge of sending documents to Elastic
 # And also in charge of creating an index mapping
 class ElasticDB
+  def initialize
+    @indices = Concurrent::Hash.new
+  end
+
+  def purge
+    puts('This is where we can bake batch queries maybe')
+  end
 
   def push(event)
     case event
     when AddEvent
-      # XXX we can use the Keep-Alive thing to continuously push I guess
-      puts("Write in ES #{event.data['listing_url']}")
+      document = event.data[:document]
+      index = event.data[:index]
+      @indices[index] = [] unless @indices.include?(:index)
+      @indices[index].push(document)
+    when FinishedEvent
+      purge
     end
   end
 
@@ -22,6 +33,7 @@ class ElasticConfig
     {
       auth_token: 'secret',
       indexing_rules: {
+        index_target: 'airbnb',
         bedrooms: 2
       }
     }
