@@ -46,3 +46,6 @@ gem 'signet', '~> 0.16.0'
 
 # Dependencies for mongodb
 gem 'mongo', '~> 2.6.4'
+
+gem 'elasticsearch', '~> 7.4.0'
+
