@@ -52,10 +52,13 @@ class SyncJob
     @dequeuer = nil
     @fetcher = nil
     @fetched = 0
+    @created = 0
+    @updated = 0
+    @noop = 0
   end
 
   def to_s
-    "Job #{@id[0..7]}/#{@status} ~ fetched #{@fetched} docs"
+    "Job #{@id[0..7]}/#{@status} ~ extracted #{@fetched} ~ created #{@created} ~ updated #{@updated} ~ noop #{@noop}"
   end
 
   def close
@@ -94,9 +97,13 @@ class SyncJob
     loop do
       event = @events_queue.pop(false)
       # XXX send in batches
-      @event_callback.call(event)
+      res = @event_callback.call(event)
+      @created += res[:created]
+      @updated += res[:updated]
+      @noop += res[:noop]
       break if event.instance_of?(FinishedEvent)
     end
+    puts(self)
     puts('Ingestion done.')
     @manager.end_job(@id)
   end
@@ -118,6 +125,5 @@ class SyncJob
 
     @events_queue.push(FinishedEvent.new(@id))
     @status = FINISHED
-    puts('Fetching done')
   end
 end

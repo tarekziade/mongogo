@@ -12,13 +12,12 @@ BATCH_SIZE = 100
 class ElasticDB
   def initialize
     @indices = Concurrent::Hash.new
+    @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
+    puts(@client.cluster.health)
   end
 
   def purge
-    puts('Bulk update')
     # XXX threasafeness
-    @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
-    puts(@client.cluster.health)
     updates = creations = noops = 0
 
     @indices.each { |index, documents|
@@ -36,7 +35,8 @@ class ElasticDB
         filtered_doc = {
           :summary => document[:summary],
           :listing_url => document[:listing_url],
-          :name => document[:name]
+          :name => document[:name],
+          :country => document[:country]
         }
         body.push({ :doc => filtered_doc, :doc_as_upsert => true })
       }
@@ -47,28 +47,36 @@ class ElasticDB
       begin
         resp = @client.bulk(body: body)
         resp['items'].each do |update|
-          noops += 1 if update['update']['result'] == 'noop'
+          case update['update']['result']
+          when 'noop'
+            noops += 1
+          when 'created'
+            creations += 1
+          when 'updated'
+            updates += 1
+          end
         end
       rescue Faraday::Error::ConnectionFailed
         puts('Whoops')
         raise
       end
     }
-
-    puts("Bulk update done - No Op : #{noops}, Creation: #{creations}, Update: #{updates}")
+    { :created => creations, :updated => updates, :noop => noops }
   end
 
   def push(event)
+    res = { :created => 0, :updated => 0, :noop => 0 }
     case event
     when AddEvent
       document = event.data[:document]
       index = event.data[:index]
       @indices[index] = Queue.new unless @indices.include?(index)
       @indices[index].push(document)
-      purge if @indices[index].size >= BATCH_SIZE
+      res = purge if @indices[index].size >= BATCH_SIZE
     when FinishedEvent
-      purge
+      res = purge
     end
+    res
   end
 
 end
