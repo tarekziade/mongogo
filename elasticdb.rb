@@ -5,6 +5,8 @@ require 'faraday'
 
 require_relative 'events'
 
+BATCH_SIZE = 100
+
 # This class is in charge of sending documents to Elastic
 # And also in charge of creating an index mapping
 class ElasticDB
@@ -15,36 +17,45 @@ class ElasticDB
   def purge
     puts('Bulk update')
     # XXX threasafeness
-    @client = Elasticsearch::Client.new(log: true, user: 'elastic', password: 'changeme')
+    @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
     puts(@client.cluster.health)
-    @client.transport.reload_connections!
+    updates = creations = noops = 0
 
     @indices.each { |index, documents|
-      puts("Updating index #{index} with #{documents.size} documents")
-      num = 1
-      documents.each_slice(10) { |batch|
-        puts("Batch #{num} - 10 docs")
-
-        body = []
-        batch.each { |document|
-          body.push({ index: { "_index": index, "_type": 'Airbnb' } })
-          # XXX for now
-          filtered_doc = { :summary => document[:summary], :listing_url => document[:listing_url], :name => document[:name] }
-          body.push(filtered_doc)
-        }
-        puts(body)
+      # preparing a bulk batch
+      body = []
+      BATCH_SIZE.times {
         begin
-          puts(@client.bulk(body: body))
-        rescue Faraday::Error::ConnectionFailed => e
-          puts('Whoops')
-          raise
+          document = documents.deq(true)
+        rescue ThreadError
+          # empty
+          break
         end
-        num += 1
-        puts('OK')
+        body.push({ update: { _index: index, _id: document[:_id] } })
+        # XXX for now
+        filtered_doc = {
+          :summary => document[:summary],
+          :listing_url => document[:listing_url],
+          :name => document[:name]
+        }
+        body.push({ :doc => filtered_doc, :doc_as_upsert => true })
       }
+
+      next if body.empty?
+
+      # pushing the request
+      begin
+        resp = @client.bulk(body: body)
+        resp['items'].each do |update|
+          noops += 1 if update['update']['result'] == 'noop'
+        end
+      rescue Faraday::Error::ConnectionFailed
+        puts('Whoops')
+        raise
+      end
     }
 
-    puts('Bulk update done')
+    puts("Bulk update done - No Op : #{noops}, Creation: #{creations}, Update: #{updates}")
   end
 
   def push(event)
@@ -52,8 +63,9 @@ class ElasticDB
     when AddEvent
       document = event.data[:document]
       index = event.data[:index]
-      @indices[index] = [] unless @indices.include?(index)
+      @indices[index] = Queue.new unless @indices.include?(index)
       @indices[index].push(document)
+      purge if @indices[index].size >= BATCH_SIZE
     when FinishedEvent
       purge
     end
