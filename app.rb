@@ -30,9 +30,7 @@ class SyncService < Sinatra::Base
     set :show_exceptions, false
     set :bind, settings.http['host']
     set :port, settings.http['port']
-    # XXX move to Async::Reactor and use a single thread
-    set :pool, Concurrent::ThreadPoolExecutor.new(min_threads: 3, max_threads: 10, max_queue: 0)
-    set :results, Concurrent::Hash.new
+    set :jobs, Jobs.new
     set :database, ElasticDB.new
     set :config, ElasticConfig.new
   end
@@ -43,9 +41,16 @@ class SyncService < Sinatra::Base
     super
   end
 
-  def status_callback(job)
+  def event_callback(event)
+    job = settings.jobs[event.job_id]
+
+    if event.instance_of?(Finished)
+      puts("Job #{job.id} finished")
+      return
+    end
+
     puts("Job #{job.id} - #{job.status}")
-    settings.results[job.id] = { :status => job.status }
+    settings.database.push(event)
   end
 
   get '/' do
@@ -57,34 +62,8 @@ class SyncService < Sinatra::Base
   # when using Puma, this creates a new thread -- which is not required since
   # we handle our own thread for the sync job, but does not hurt
   get '/start' do
-    job_id = SecureRandom.uuid
     data_source = MongoBackend.new
-    job = SyncJob.new(job_id, data_source, method(:status_callback), settings.config)
-
-    # data grabber
-    settings.pool.post do
-      puts("Running #{job.id} in a thread")
-      job.run
-      puts('Extraction done.')
-    rescue StandardError => e
-      puts(e.backtrace)
-    end
-
-    # dequeue worker
-    settings.pool.post do
-      puts('Running the dequeuer in a thread')
-      begin
-        loop do
-          doc = job.documents_queue.pop(false)
-          break if doc == 'FINISHED'
-          # send in batches
-          settings.database.push(doc)
-        end
-        puts('Ingestion done.')
-      rescue StandardError => e
-        puts(e.backtrace)
-      end
-    end
+    job_id = settings.jobs.run_job(data_source, method(:event_callback), settings.config)
 
     json(
       job_id: job_id,
@@ -94,17 +73,14 @@ class SyncService < Sinatra::Base
 
   get '/result/:job_id' do
     job_id = params[:job_id]
-    unless settings.results.include?(job_id)
+    unless settings.jobs.include?(job_id)
       status 404
       return json({ "Not found": job_id })
     end
 
-    result = settings.results[job_id]
-    if result[:status] == 'finished'
-      result[:job].close
-      result.delete(:job)
-      settings.results.delete(job_id)
-    end
-    json(result)
+    json(
+      status: settings.jobs.status(job_id),
+      job_id: job.id
+    )
   end
 end

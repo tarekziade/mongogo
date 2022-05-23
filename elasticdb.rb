@@ -1,12 +1,16 @@
 # frozen_string_literal: true
+require_relative 'events'
 
 # This class is in charge of sending documents to Elastic
 # And also in charge of creating an index mapping
 class ElasticDB
 
-  def push(doc)
-    # XXX we can use the Keep-Alive thing to continuously push I guess
-    puts("Write in ES #{doc['listing_url']}")
+  def push(event)
+    case event
+    when AddEvent
+      # XXX we can use the Keep-Alive thing to continuously push I guess
+      puts("Write in ES #{event.data['listing_url']}")
+    end
   end
 
 end
