@@ -35,17 +35,12 @@ class SyncService < Sinatra::Base
     set :config, ElasticConfig.new
   end
 
-  def quit!
-    settings.pool.shutdown
-    settings.pool.wait_for_termination
-    super
-  end
-
   def event_callback(event)
-    job = settings.jobs[event.job_id]
+    job = settings.jobs.get_job(event.job_id)
 
-    if event.instance_of?(Finished)
+    if event.instance_of?(FinishedEvent)
       puts("Job #{job.id} finished")
+      job.close
       return
     end
 

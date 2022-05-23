@@ -7,7 +7,7 @@ gem 'bundler', File.read(File.join(__dir__, '.bundler-version')).strip
 
 # Dependencies for connectors
 gem 'activesupport', '5.2.6'
-gem 'bson', '~> 4.2.2'
+gem 'bson', '~> 4.3.0'
 gem 'mime-types', '= 3.1'
 gem 'tzinfo-data', '= 1.2022.1'
 gem 'concurrent-ruby'
@@ -45,4 +45,4 @@ gem 'puma'
 gem 'signet', '~> 0.16.0'
 
 # Dependencies for mongodb
-gem 'mongo'
+gem 'mongo', '~> 2.6.4'

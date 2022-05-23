@@ -8,13 +8,19 @@ Mongo::Logger.logger.level = ::Logger::FATAL
 class MongoBackend
   def initialize
     @client = Mongo::Client.new(['127.0.0.1:27017'], database: 'sample_airbnb')
-    puts(@client.summary)
+    puts("Existing Databases #{@client.database_names}")
+    puts('Existing Collections')
+    @client.collections.each { |coll| puts coll.name }
   end
 
   def documents
-    puts("Read mongo")
+    collection = @client[:listingsAndReviews]
+
     # XXX yield, pagination
-    @client[:listingsAndReviews].find
+    docs = collection.find
+
+    puts("Read mongo #{docs.count}")
+    docs
   end
 
   def close

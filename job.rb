@@ -11,6 +11,10 @@ class Jobs
     @jobs = Concurrent::Hash.new
   end
 
+  def get_job(job_id)
+    @jobs[job_id]
+  end
+
   def run_job(data_source, event_callback, config)
     job = SyncJob.new(self, data_source, event_callback, config)
     @jobs[job.id] = job
@@ -45,9 +49,13 @@ class SyncJob
     @status = INITIALIZED
     @event_callback = event_callback
     @configuration = configuration
+    @dequeuer = nil
+    @fetcher = nil
   end
 
   def close
+    puts(@dequeuer.status)
+    puts(@fetcher.status)
     # XXX cleanup? close connections?
   end
 
@@ -55,19 +63,26 @@ class SyncJob
     @status == FINISHED
   end
 
+  def print_exception(e)
+    puts(e)
+    puts(e.backtrace)
+  end
+
   def run
-    Thread.new {
+    Thread.abort_on_exception = true
+
+    @fetcher = Thread.new {
       begin
         fetch_data
       rescue StandardError => e
-        puts(e.backtrace)
+        print_exception(e)
       end
     }
-    Thread.new {
+    @dequeuer = Thread.new {
       begin
         dequeue
       rescue StandardError => e
-        puts(e.backtrace)
+        print_exception(e)
       end
     }
   end
@@ -75,9 +90,9 @@ class SyncJob
   def dequeue
     loop do
       event = @events_queue.pop(false)
-      break if event.instance_of?(FinishedEvent)
       # XXX send in batches
       @event_callback.call(event)
+      break if event.instance_of?(FinishedEvent)
     end
     puts('Ingestion done.')
     @manager.end_job(@id)
@@ -99,5 +114,6 @@ class SyncJob
 
     @events_queue.push(FinishedEvent.new(@id))
     @status = FINISHED
+    puts('Fetching done')
   end
 end
