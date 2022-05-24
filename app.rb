@@ -57,7 +57,7 @@ class SyncService < Sinatra::Base
   # we handle our own thread for the sync job, but does not hurt
   get '/start' do
     data_source = MongoBackend.new
-    job_id = settings.jobs.run_job(data_source, method(:event_callback), settings.config)
+    job_id = settings.jobs.run_sync_job(data_source, method(:event_callback), settings.config)
 
     json(
       job_id: job_id,

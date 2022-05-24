@@ -2,14 +2,17 @@
 
 ## How to use
 
-Run MongoDB with Docker:
+Run MongoDB and Elasticsearch with Docker:
+
 ```
-./scripts/runmongo.sh
+cd scripts
+./runstack.sh
 ```
 
 Make sure you populate it with the sample data:
 ```
-./scripts/loadsample.sh
+cd scripts
+./loadsample.sh
 ```
 
 The use the Makefile to run the service:

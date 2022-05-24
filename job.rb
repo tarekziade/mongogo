@@ -15,8 +15,15 @@ class Jobs
     @jobs[job_id]
   end
 
-  def run_job(data_source, event_callback, config)
+  def run_sync_job(data_source, event_callback, config)
     job = SyncJob.new(self, data_source, event_callback, config)
+    @jobs[job.id] = job
+    job.run
+    job.id
+  end
+
+  def run_stream_job(data_source, event_callback, config)
+    job = StreamSync.new(self, data_source, event_callback, config)
     @jobs[job.id] = job
     job.run
     job.id
@@ -55,6 +62,7 @@ class SyncJob
     @created = 0
     @updated = 0
     @noop = 0
+    @stream = StreamSync.new(manager, data_source, event_callback, configuration)
   end
 
   def to_s
@@ -106,6 +114,8 @@ class SyncJob
     puts(self)
     puts('Ingestion done.')
     @manager.end_job(@id)
+    puts('Now starting the Stream')
+    @stream.run
   end
 
   def fetch_data
@@ -122,6 +132,57 @@ class SyncJob
         @fetched += 1
       end
     end
+
+    @events_queue.push(FinishedEvent.new(@id))
+    @status = FINISHED
+  end
+end
+
+class StreamSync
+  def initialize(manager, data_source, event_callback, configuration)
+    @manager = manager
+    @data_source = data_source
+    @id = SecureRandom.uuid
+    @events_queue = Queue.new
+    @status = INITIALIZED
+    @event_callback = event_callback
+    @configuration = configuration
+    @streamer = nil
+  end
+
+  def to_s
+    "StreamJob #{@id[0..7]}/#{@status}"
+  end
+
+  def close
+    # XXX cleanup? close connections?
+  end
+
+  def finished
+    @status == FINISHED
+  end
+
+  def print_exception(e)
+    puts(e)
+    puts(e.backtrace)
+  end
+
+  def run
+    @status = WORKING
+    # config = @configuration.read
+    Thread.abort_on_exception = true
+    @streamer = Thread.new {
+      begin
+        puts('Change stream started')
+        stream = @data_source.change_stream
+        loop do
+          change = stream.next
+          @event_callback.call(ChangedEvent.new(@id, change))
+        end
+      rescue StandardError => e
+        print_exception(e)
+      end
+    }
 
     @events_queue.push(FinishedEvent.new(@id))
     @status = FINISHED
