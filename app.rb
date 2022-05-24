@@ -23,6 +23,7 @@ require_relative 'mongodb'
 # Sinatra app
 class SyncService < Sinatra::Base
   register Sinatra::ConfigFile
+
   config_file File.join(__dir__, 'config.yml')
 
   configure do
@@ -33,6 +34,7 @@ class SyncService < Sinatra::Base
     set :jobs, Jobs.new
     set :database, ElasticDB.new
     set :config, ElasticConfig.new
+    set :public_folder, File.join(File.dirname(__FILE__), 'html')
   end
 
   def event_callback(event)
@@ -48,9 +50,7 @@ class SyncService < Sinatra::Base
   end
 
   get '/' do
-    json(
-      title: 'Hey, I ingest data from MongoDB, trigger me at http://localhost:9292/start'
-    )
+    send_file File.join(settings.public_folder, 'index.html')
   end
 
   # when using Puma, this creates a new thread -- which is not required since
