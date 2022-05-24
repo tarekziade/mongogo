@@ -53,16 +53,16 @@ class SyncService < Sinatra::Base
     send_file File.join(settings.public_folder, 'index.html')
   end
 
+  get '/status' do
+    send_file File.join(settings.public_folder, 'status.html')
+  end
+
   # when using Puma, this creates a new thread -- which is not required since
   # we handle our own thread for the sync job, but does not hurt
   get '/start' do
     data_source = MongoBackend.new
     job_id = settings.jobs.run_bulk_sync(data_source, method(:event_callback), settings.config)
-
-    json(
-      job_id: job_id,
-      result_url: "http://localhost:9292/result/#{job_id}"
-    )
+    redirect('/status')
   end
 
   get '/result/:job_id' do
