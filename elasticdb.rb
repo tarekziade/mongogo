@@ -71,19 +71,22 @@ class ElasticDB
 
   def push(event)
     res = { :created => 0, :updated => 0, :noop => 0 }
+
+    index = event.data[:index] if event.respond_to?(:data)
+    if index && !@indices.include?(index)
+      @indices[index] = Queue.new
+      prepare_index(index)
+    end
+
     case event
     # XXX CHange event for now is just a new document + direct purge
     when ChangedEvent
       document = event.data[:document]
-      index = event.data[:index]
-      @indices[index] = Queue.new unless @indices.include?(index)
       @indices[index].push(document)
       res = purge
       puts(res)
     when AddEvent
       document = event.data[:document]
-      index = event.data[:index]
-      @indices[index] = Queue.new unless @indices.include?(index)
       @indices[index].push(document)
       res = purge if @indices[index].size >= BATCH_SIZE
 
