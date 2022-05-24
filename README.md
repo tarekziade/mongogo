@@ -43,17 +43,20 @@ This will add the data and should trigger an update to Elasticsearch in realtime
 ## Actors
 
 - `SyncService` -- front end to trigger jobs
-- `SyncJob` -- Sync job that drives a sync
+- `Jobs` -- Handles jobs
+- `BulkSync` and `StreamSync` -- Sync jobs that drives a sync
 - `MongoBackend` -- the mongo class that grabs documents and sends them back
 - `ElasticDB` -- the documents DB we are pushing into
 - `ElasticConfig` -- the configuration DB that provides info, like auth tokensm indexing rules etc
 
-
 ## How the service works
 
 - `SyncService` gets triggered on `GET /start`
-- `SyncService` creates a sync job and return immediatly an id
-- `SyncJob` can pick running info from `ElasticConfig` to know how to run
-- `SyncJob` uses `MongoBackend` to get documents
-- `SyncJob` updates its status on a regulare basis
-- `SyncJob` sends documents to `ElasticDB`
+- `SyncService` creates a bulk sync job via `Jobs` and returns immediatly its id
+- `BulkSync` can pick running info from `ElasticConfig` to know how to run
+- `BulkSync` uses `MongoBackend` to get documents
+- `BulkSync` fills a queue
+- `ElasticDB` sends docs to Elasticsearch as bulk request by picking docs in the queue
+- `SyncService` starts a `StreamSync` when the `BulkSync` has finished working
+- `StreamSync` connects to the MongoDB changes API and streams documents to the queue
+- `ElasticDB` sends docs continuously to Elasticsearch

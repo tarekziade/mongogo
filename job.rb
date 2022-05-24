@@ -15,14 +15,14 @@ class Jobs
     @jobs[job_id]
   end
 
-  def run_sync_job(data_source, event_callback, config)
-    job = SyncJob.new(self, data_source, event_callback, config)
+  def run_bulk_sync(data_source, event_callback, config)
+    job = BulkSync.new(self, data_source, event_callback, config)
     @jobs[job.id] = job
     job.run
     job.id
   end
 
-  def run_stream_job(data_source, event_callback, config)
+  def run_stream_sync(data_source, event_callback, config)
     job = StreamSync.new(self, data_source, event_callback, config)
     @jobs[job.id] = job
     job.run
@@ -45,7 +45,7 @@ end
 
 # XXX move to Async::Reactor and use a single thread
 # Handles a Sync Job. One thread grabs the data, and the other dequeues it
-class SyncJob
+class BulkSync
   attr_reader :id, :status, :events_queue
 
   def initialize(manager, data_source, event_callback, configuration)
@@ -114,7 +114,7 @@ class SyncJob
     puts('Ingestion done.')
     @manager.end_job(@id)
     puts('Now starting the Stream')
-    @manager.run_stream_job(@data_source, @event_callback, @configuration)
+    @manager.run_stream_sync(@data_source, @event_callback, @configuration)
   end
 
   def fetch_data
