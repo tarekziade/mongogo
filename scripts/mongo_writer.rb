@@ -8,14 +8,17 @@ client = Mongo::Client.new(['127.0.0.1:27021'],
 
 collection = client[:listingsAndReviews]
 
-doc_id = rand.to_s[2..11]
+10.times {
+  doc_id = rand.to_s[2..11]
 
-doc = {
-          :summary => Faker::Movies::Lebowski.quote,
-          :listing_url => "https://www.airbnb.com/rooms/#{doc_id}",
-          :name => Faker::Coffee.origin,
-          :country => 'France',
-          :_id => doc_id
-        }
+  doc = {
+            :summary => Faker::Movies::Lebowski.quote,
+            :listing_url => "https://www.airbnb.com/rooms/#{doc_id}",
+            :name => Faker::Coffee.origin,
+            :country => 'France',
+            :_id => doc_id
+          }
 
-collection.insert_one(doc)
+  collection.insert_one(doc)
+  sleep(0.2)
+}
