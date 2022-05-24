@@ -1,0 +1,68 @@
+{
+    "dynamic": true,
+    "date_detection": true,
+    "dynamic_date_formats": [
+      "date_optional_time",
+      "yyyy-MM-dd"
+    ],
+    "numeric_detection": false,
+    "dynamic_templates": [
+      {
+        "string": {
+          "match_mapping_type": "string",
+          "mapping": {
+            "fields": {
+              "prefix": {
+                "type": "text"
+              },
+              "enum": {
+                "ignore_above": 2048,
+                "type": "keyword"
+              },
+              "joined": {
+                "type": "text"
+              },
+              "delimiter": {
+                "type": "text"
+              },
+              "stem": {
+                "type": "text"
+              }
+            },
+            "index_options": "freqs",
+            "type": "text"
+          }
+        }
+      },
+      {
+        "date": {
+          "match_mapping_type": "date",
+          "mapping": {
+            "format": "date_optional_time||strict_date",
+            "type": "date"
+          }
+        }
+      },
+      {
+        "integer": {
+          "mapping": {
+            "type": "long"
+          }
+        }
+      },
+      {
+        "double": {
+          "mapping": {
+            "type": "float"
+          }
+        }
+      },
+      {
+        "binary": {
+          "mapping": {
+            "type": "binary"
+          }
+        }
+      }
+    ]
+  }

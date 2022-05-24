@@ -2,6 +2,7 @@
 
 require 'elasticsearch'
 require 'faraday'
+require 'json'
 
 require_relative 'events'
 
@@ -10,6 +11,8 @@ BATCH_SIZE = 100
 # This class is in charge of sending documents to Elastic
 # And also in charge of creating an index mapping
 class ElasticDB
+  MAPPING = JSON.load(File.read('dynamic_mapping.json'))
+
   def initialize
     @indices = Concurrent::Hash.new
     @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
@@ -90,6 +93,23 @@ class ElasticDB
     res
   end
 
+  def prepare_index(index)
+    # push dynamic mapping template to index
+    # or create index in case it does not exist
+    if @client.indices.exists?(:index => index)
+      @client.indices.put_mapping(
+        :index => index,
+        :body => MAPPING
+      )
+    else
+      @client.indices.create(
+        :index => index,
+        :body => {
+          :mappings => MAPPING
+        }
+      )
+    end
+  end
 end
 
 # This class can be used by a sync Job to read some configuration info
