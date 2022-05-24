@@ -48,4 +48,5 @@ gem 'signet', '~> 0.16.0'
 gem 'mongo', '~> 2.6.4'
 
 gem 'elasticsearch', '~> 7.4.0'
+gem 'faker'
 

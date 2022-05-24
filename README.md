@@ -30,6 +30,16 @@ And start a sync with `http://0.0.0.0:9292/start`
   Use OpenSSL 1.1, not OpenSSL 3.x
 
 
+Once the sync ends, a "permanent" sync job starts.
+
+You can write data in MongoDB with:
+```
+rbenv exec ruby scripts/mongo_writer.rb
+```
+
+This will add the data and should trigger an update to Elasticsearch in realtime.
+
+
 ## Actors
 
 - `SyncService` -- front end to trigger jobs

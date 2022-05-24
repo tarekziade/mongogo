@@ -30,6 +30,8 @@ class ElasticDB
           # empty
           break
         end
+        break if document.nil?
+
         body.push({ update: { _index: index, _id: document[:_id] } })
         # XXX for now
         filtered_doc = {
@@ -67,12 +69,21 @@ class ElasticDB
   def push(event)
     res = { :created => 0, :updated => 0, :noop => 0 }
     case event
+    # XXX CHange event for now is just a new document + direct purge
+    when ChangedEvent
+      document = event.data[:document]
+      index = event.data[:index]
+      @indices[index] = Queue.new unless @indices.include?(index)
+      @indices[index].push(document)
+      res = purge
+      puts(res)
     when AddEvent
       document = event.data[:document]
       index = event.data[:index]
       @indices[index] = Queue.new unless @indices.include?(index)
       @indices[index].push(document)
       res = purge if @indices[index].size >= BATCH_SIZE
+
     when FinishedEvent
       res = purge
     end

@@ -28,6 +28,8 @@ GEM
     elasticsearch-transport (7.4.0)
       faraday
       multi_json
+    faker (2.21.0)
+      i18n (>= 1.8.11, < 2)
     faraday (2.3.0)
       faraday-net_http (~> 2.0)
       ruby2_keywords (>= 0.0.4)
@@ -153,6 +155,7 @@ DEPENDENCIES
   concurrent-ruby
   debase (= 0.2.5.beta2)
   elasticsearch (~> 7.4.0)
+  faker
   faraday
   forwardable
   hashie

@@ -62,7 +62,6 @@ class SyncJob
     @created = 0
     @updated = 0
     @noop = 0
-    @stream = StreamSync.new(manager, data_source, event_callback, configuration)
   end
 
   def to_s
@@ -115,7 +114,7 @@ class SyncJob
     puts('Ingestion done.')
     @manager.end_job(@id)
     puts('Now starting the Stream')
-    @stream.run
+    @manager.run_stream_job(@data_source, @event_callback, @configuration)
   end
 
   def fetch_data
@@ -139,6 +138,8 @@ class SyncJob
 end
 
 class StreamSync
+  attr_reader :id, :status
+
   def initialize(manager, data_source, event_callback, configuration)
     @manager = manager
     @data_source = data_source
@@ -169,6 +170,9 @@ class StreamSync
 
   def run
     @status = WORKING
+    config = @configuration.read
+    index = config[:indexing_rules][:index_target]
+
     # config = @configuration.read
     Thread.abort_on_exception = true
     @streamer = Thread.new {
@@ -177,7 +181,13 @@ class StreamSync
         stream = @data_source.change_stream
         loop do
           change = stream.next
-          @event_callback.call(ChangedEvent.new(@id, change))
+          # XXX need to implement changes deletes,
+          # for now it's just addition
+          doc = change[:fullDocument]
+          doc = doc.transform_keys(&:to_sym)
+          @event_callback.call(ChangedEvent.new(@id, { :document => doc, :index => index }))
+
+          # @event_callback.call(ChangedEvent.new(@id, change))
         end
       rescue StandardError => e
         print_exception(e)
