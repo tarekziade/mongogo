@@ -17,10 +17,16 @@ class ElasticDB
     @indices = Concurrent::Hash.new
     @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
     puts(@client.cluster.health)
+    @mutex = Mutex.new
   end
 
   def purge
-    # XXX threasafeness
+    @mutex.synchronize do
+      _purge
+    end
+  end
+
+  def _purge
     deletes = updates = creations = noops = 0
 
     @indices.each { |index, events|
