@@ -122,6 +122,7 @@ class BulkSync
       @created += res[:created]
       @updated += res[:updated]
       @noop += res[:noop]
+      @deleted += res[:deleted]
       break if event.instance_of?(FinishedEvent)
     end
     puts(self)
