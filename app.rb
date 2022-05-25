@@ -65,7 +65,12 @@ class SyncService < Sinatra::Base
   # we handle our own thread for the sync job, but does not hurt
   get '/start' do
     data_source = MongoBackend.new
-    settings.jobs.run_bulk_sync(data_source, method(:event_callback), settings.config)
+
+    # to be batched, and need to find a spot
+    index = settings.config.read[:indexing_rules][:index_target]
+    existing_ids = settings.database.get_existing_ids(index)
+
+    settings.jobs.run_bulk_sync(data_source, method(:event_callback), settings.config, existing_ids)
     redirect('/status.html')
   end
 

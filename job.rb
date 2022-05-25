@@ -15,8 +15,8 @@ class Jobs
     @jobs[job_id]
   end
 
-  def run_bulk_sync(data_source, event_callback, config)
-    job = BulkSync.new(self, data_source, event_callback, config)
+  def run_bulk_sync(data_source, event_callback, config, existing_ids)
+    job = BulkSync.new(self, data_source, event_callback, config, existing_ids)
     @jobs[job.id] = job
     job.run
     job.id
@@ -48,7 +48,7 @@ end
 class BulkSync
   attr_reader :id, :status, :events_queue
 
-  def initialize(manager, data_source, event_callback, configuration)
+  def initialize(manager, data_source, event_callback, configuration, existing_ids)
     @manager = manager
     @data_source = data_source
     @id = SecureRandom.uuid
@@ -58,10 +58,14 @@ class BulkSync
     @configuration = configuration
     @dequeuer = nil
     @fetcher = nil
+    @existing_ids = existing_ids
     @fetched = 0
     @created = 0
     @updated = 0
     @noop = 0
+    @deleted = 0
+    @config = @configuration.read
+    @index = @config[:indexing_rules][:index_target]
   end
 
   def to_s
@@ -74,7 +78,7 @@ class BulkSync
       :created => @created,
       :updated => @updated,
       :noop => @noop,
-      :deleted => 0
+      :deleted => @deleted
     }
   end
 
@@ -133,13 +137,23 @@ class BulkSync
     config = @configuration.read
     index = config[:indexing_rules][:index_target]
     current = 0
+    seen_ids = []
     @data_source.documents.each do |doc|
+      doc_id = doc[:_id]
+      seen_ids.push(doc_id)
+      event_klass = @existing_ids.include?(doc_id) ? AddEvent : ModifyEvent
       # filter!
       if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
-        @events_queue.push(AddEvent.new(@id, { :document => doc, :index => index }))
+        @events_queue.push(event_klass.new(@id, { :document => doc, :index => index }))
         current += 1
         @fetched += 1
       end
+    end
+
+    # XXX naive loop
+    @existing_ids.each do |doc_id|
+      next if seen_ids.include?(doc_id)
+      @events_queue.push(DeleteEvent.new(@id, index, doc_id))
     end
 
     @events_queue.push(FinishedEvent.new(@id))
@@ -159,6 +173,7 @@ class StreamSync
     @event_callback = event_callback
     @configuration = configuration
     @streamer = nil
+    @index = @configuration.read[:indexing_rules][:index_target]
   end
 
   def to_s
@@ -180,8 +195,6 @@ class StreamSync
 
   def run
     @status = WORKING
-    config = @configuration.read
-    index = config[:indexing_rules][:index_target]
 
     # config = @configuration.read
     Thread.abort_on_exception = true
@@ -195,16 +208,17 @@ class StreamSync
           # for now it's just addition
           doc = change[:fullDocument]
           doc = doc.transform_keys(&:to_sym)
-          @event_callback.call(ChangedEvent.new(@id, { :document => doc, :index => index }))
+          @event_callback.call(ChangedEvent.new(@id, { :document => doc, :index => @index }))
 
+          puts(to_s)
           # @event_callback.call(ChangedEvent.new(@id, change))
         end
+
+        @events_queue.push(FinishedEvent.new(@id))
+        @status = FINISHED
       rescue StandardError => e
         print_exception(e)
       end
     }
-
-    @events_queue.push(FinishedEvent.new(@id))
-    @status = FINISHED
   end
 end

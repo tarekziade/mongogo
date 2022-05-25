@@ -21,29 +21,37 @@ class ElasticDB
 
   def purge
     # XXX threasafeness
-    updates = creations = noops = 0
+    deletes = updates = creations = noops = 0
 
-    @indices.each { |index, documents|
+    @indices.each { |index, events|
       # preparing a bulk batch
       body = []
       BATCH_SIZE.times {
         begin
-          document = documents.deq(true)
+          event = events.deq(true)
         rescue ThreadError
           # empty
           break
         end
-        break if document.nil?
 
-        body.push({ update: { _index: index, _id: document[:_id] } })
-        # XXX for now
-        filtered_doc = {
-          :summary => document[:summary],
-          :listing_url => document[:listing_url],
-          :name => document[:name],
-          :country => document[:country]
-        }
-        body.push({ :doc => filtered_doc, :doc_as_upsert => true })
+        doc_id = event.data[:document][:_id]
+
+        case event
+        when AddEvent, ModifyEvent, ChangedEvent
+          document = event.data[:document]
+
+          body.push({ update: { _index: index, _id: doc_id } })
+          # XXX for now
+          filtered_doc = {
+            :summary => document[:summary],
+            :listing_url => document[:listing_url],
+            :name => document[:name],
+            :country => document[:country]
+          }
+          body.push({ :doc => filtered_doc, :doc_as_upsert => true })
+        when DeleteEvent
+          body.push({ delete: { _index: index, _id: doc_id } })
+        end
       }
 
       next if body.empty?
@@ -59,18 +67,20 @@ class ElasticDB
             creations += 1
           when 'updated'
             updates += 1
+          when 'deleted'
+            deletes += 1
           end
         end
-      rescue Faraday::Error::ConnectionFailed
+      rescue Faraday::ConnectionFailed
         puts('Whoops')
         raise
       end
     }
-    { :created => creations, :updated => updates, :noop => noops }
+    { :created => creations, :updated => updates, :noop => noops, :deleted => deletes }
   end
 
   def push(event)
-    res = { :created => 0, :updated => 0, :noop => 0 }
+    res = { :created => 0, :updated => 0, :noop => 0, :deleted => 0 }
 
     index = event.data[:index] if event.respond_to?(:data)
     if index && !@indices.include?(index)
@@ -79,21 +89,27 @@ class ElasticDB
     end
 
     case event
-    # XXX CHange event for now is just a new document + direct purge
     when ChangedEvent
-      document = event.data[:document]
-      @indices[index].push(document)
+      @indices[index].push(event)
       res = purge
-      puts(res)
-    when AddEvent
-      document = event.data[:document]
-      @indices[index].push(document)
+
+    when AddEvent, ModifyEvent, DeleteEvent
+      @indices[index].push(event)
       res = purge if @indices[index].size >= BATCH_SIZE
 
     when FinishedEvent
       res = purge
     end
     res
+  end
+
+  # XXX batch+scale
+  def get_existing_ids(index)
+    return [] unless @client.indices.exists?(:index => index)
+    # no batching for now
+    @client.search(index: index, _source: ['id'], size: 2000)['hits']['hits'].map do |hit|
+      hit['_id']
+    end
   end
 
   def prepare_index(index)

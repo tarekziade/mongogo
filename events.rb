@@ -10,6 +10,15 @@ class AddEvent
   end
 end
 
+class ModifyEvent
+  attr_reader :job_id, :data
+
+  def initialize(job_id, data)
+    @job_id = job_id
+    @data = data
+  end
+end
+
 class FinishedEvent
   attr_reader :job_id
 
@@ -24,5 +33,14 @@ class ChangedEvent
   def initialize(job_id, data)
     @job_id = job_id
     @data = data
+  end
+end
+
+class DeleteEvent
+  attr_reader :job_id, :data
+
+  def initialize(job_id, index, doc_id)
+    @job_id = job_id
+    @data = { :index => index, :document => { :_id => doc_id } }
   end
 end
