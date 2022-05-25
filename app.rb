@@ -35,11 +35,14 @@ class SyncService < Sinatra::Base
     set :database, ElasticDB.new
     set :config, ElasticConfig.new
     set :public_folder, File.join(File.dirname(__FILE__), 'html')
+    set :status, { :extracted => 0, :created => 0, :updated => 0, :noop => 0, :deleted => 0 }
   end
 
   def event_callback(event)
     res = settings.database.push(event)
     job = settings.jobs.get_job(event.job_id)
+    # XXX should be multi-job
+    settings.status = job.to_json
     puts(job.to_s) unless job.finished
 
     if event.instance_of?(FinishedEvent)
@@ -54,15 +57,16 @@ class SyncService < Sinatra::Base
   end
 
   get '/status' do
-    send_file File.join(settings.public_folder, 'status.html')
+    # XXX need to add job id
+    json(settings.status)
   end
 
   # when using Puma, this creates a new thread -- which is not required since
   # we handle our own thread for the sync job, but does not hurt
   get '/start' do
     data_source = MongoBackend.new
-    job_id = settings.jobs.run_bulk_sync(data_source, method(:event_callback), settings.config)
-    redirect('/status')
+    settings.jobs.run_bulk_sync(data_source, method(:event_callback), settings.config)
+    redirect('/status.html')
   end
 
   get '/result/:job_id' do

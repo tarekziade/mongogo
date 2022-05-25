@@ -35,24 +35,25 @@
                         <div>  <img src="/fatty-kirby.gif"></img>
             </div>
             <p class="card-text">Bulk sync</p>
-
+            <p id="kuku"></p>
             <div>
-             <button type="button" class="btn btn-primary">
-            Extracted <span class="badge badge-light" id="extracted">1746</span>
+
+           <button type="button" class="btn btn-primary">
+            Extracted <span class="badge badge-light" id="extracted">0</span>
            </button>
            >>>>
            <button type="button" class="btn btn-info">
-            Noop <span class="badge badge-light" id="noop">4</span>
+            Noop <span class="badge badge-light" id="noop">0</span>
            </button>
 
            <button type="button" class="btn btn-secondary">
-            Added <span class="badge badge-light" id="added">4</span>
+            Created <span class="badge badge-light" id="created">0</span>
            </button>
            <button type="button" class="btn btn-success">
-            Updated <span class="badge badge-light" id="updated">4</span>
+            Updated <span class="badge badge-light" id="updated">0</span>
            </button>
            <button type="button" class="btn btn-danger">
-            Deleted <span class="badge badge-light" id="deleted">4</span>
+            Deleted <span class="badge badge-light" id="deleted">0</span>
            </button>
 
            </div>
@@ -67,8 +68,9 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-    <script>window.jQuery || document.write('<script src="/jquery-slim.min.js"><\/script>')</script>
+    <script src="/jquery-3.1.1.min.js"></script>
+    <script>window.jQuery || document.write('<script src="/jquery-3.1.1.min.js"><\/script>')</script>
+
     <script src="/popper.min.js"></script>
     <script src="/bootstrap.min.js"></script>
     <script src="/holder.min.js"></script>
@@ -78,6 +80,17 @@
         fg: '#eceeef',
         text: 'Thumbnail'
       });
+
+      setInterval( function() {
+        $.getJSON("/status", function(status) {
+          $('#created').text(status.created);
+          $('#extracted').text(status.extracted);
+          $('#deleted').text(status.deleted);
+          $('#updated').text(status.updated);
+          $('#noop').text(status.noop);
+        });
+      }, 500);
+
     </script>
   </body>
 </html>

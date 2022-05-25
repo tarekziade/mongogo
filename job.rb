@@ -68,6 +68,16 @@ class BulkSync
     "Job #{@id[0..7]}/#{@status} ~ extracted #{@fetched} ~ created #{@created} ~ updated #{@updated} ~ noop #{@noop}"
   end
 
+  def to_json(*_args)
+    {
+      :extracted => @fetched,
+      :created => @created,
+      :updated => @updated,
+      :noop => @noop,
+      :deleted => 0
+    }
+  end
+
   def close
     # XXX cleanup? close connections?
   end
