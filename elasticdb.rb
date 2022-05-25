@@ -48,12 +48,7 @@ class ElasticDB
 
           body.push({ update: { _index: index, _id: doc_id } })
           # XXX for now
-          filtered_doc = {
-            :summary => document[:summary],
-            :listing_url => document[:listing_url],
-            :name => document[:name],
-            :country => document[:country]
-          }
+          filtered_doc = document.except(:_id).merge(id: doc_id)
           body.push({ :doc => filtered_doc, :doc_as_upsert => true })
         when DeleteEvent
           body.push({ delete: { _index: index, _id: doc_id } })
