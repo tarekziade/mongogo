@@ -33,6 +33,10 @@ config.write_key('auth_token', 'modified_secret', encrypted: true)
 
 see `scripts/update_config.rb`
 
+This could be used to generate an Elasticsearch API key for the service
+that we can safely store into Elasticsearch without extra steps required
+for the service to use it.
+
 ## How to use the app
 
 Run MongoDB and Elasticsearch with Docker:
