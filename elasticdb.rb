@@ -136,17 +136,13 @@ class ElasticDB
   end
 end
 
-# use OpenSSL::Cipher::AES.new(256, :CBC).random_key and random_iv to generate those
-# then base64
-DEFAULT_ENCRYPTION_KEY = '4bJmcAD0DW1wlUJ9epf2TwRn02nSRpKLiThYj07uPEg='
-DEFAULT_ENCRYPTION_IV = 'FN0qvggzrsp8Fuji2s1ktA=='
 PUBLIC_KEY_FILE = File.join(File.dirname(__FILE__), 'certs', 'public_key.pem')
 PRIVATE_KEY_FILE = File.join(File.dirname(__FILE__), 'certs', 'private_key.pem')
 
 # This class can be used by a sync Job to read some configuration info
 # Things like auth tokens, indexing rules, etc.
 class ElasticConfig
-  def initialize(encryption_key: DEFAULT_ENCRYPTION_KEY, encryption_iv: DEFAULT_ENCRYPTION_IV)
+  def initialize
     @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
     @client.cluster.health
     @index = 'ingest-config'
@@ -154,8 +150,6 @@ class ElasticConfig
     @client.index(index: @index, id: @id, body: {}) unless @client.indices.exists?(:index => @index)
     @pub_key = OpenSSL::PKey::RSA.new(File.read(PUBLIC_KEY_FILE))
     @priv_key = OpenSSL::PKey::RSA.new(File.read(PRIVATE_KEY_FILE))
-    @cipher_key = Base64.decode64(encryption_key)
-    @cipher_iv = Base64.decode64(encryption_iv)
   end
 
   def encrypt(data)
@@ -163,6 +157,7 @@ class ElasticConfig
   end
 
   def decrypt(data)
+    return data if @priv_key.nil?
     data = data.delete_prefix('encrypted:')
     data = Base64.decode64(data)
     @priv_key.private_decrypt(data)
@@ -188,5 +183,14 @@ class ElasticConfig
   def write_key(key, value, encrypted: false)
     value = encrypt(value) if encrypted
     @client.update(index: @index, id: @id, body: { doc: { key => value } }, refresh: 'wait_for')
+  end
+end
+
+# This version does not know how to decrypt but can encrypt using the pub key provided by an url
+class ExternalElasticConfig < ElasticConfig
+  def initialize(service)
+    super()
+    @pub_key = OpenSSL::PKey::RSA.new(Faraday.get("#{service}/public_key").body)
+    @priv_key = nil
   end
 end

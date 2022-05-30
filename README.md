@@ -1,6 +1,38 @@
 # mongo
 
-## How to use
+## How it works
+
+
+The MongoDB connector is a full ingestion event-based service that runs a
+couple of threads to keep a MongoDB and Elasticsearch collection in sync.
+
+It has two modes:
+- **Bulk sync** the MongoDB collection is scanned and mirrored in Elasticsearch -- that may include additions, updates, deletions
+- **Stream sync** The service uses the MongoDB changes API to get notified on changes and propagates them into Elasticsearch in real time
+
+The data is indexed in an index that uses a dynamic mapping.
+
+
+## Configuration with encryption
+
+This demo also features a way to use Elasticsearch to safely store service
+configuration and session data. Some keys be encrypted and
+encryption is based on a pub/priv key so anyone with Elasticsearch access can
+**write** encrypted data for the service to read by picking the public key at
+`http://localhost:9292/public_key`. This makes the assumption that the
+indentity of the service is trusted.
+
+To write a key for the service from anywhere:
+
+```
+require_relative 'elasticdb'
+
+config = ExternalElasticConfig.new('http://localhost:9292')
+config.write_key('auth_token', 'modified_secret', encrypted: true)
+```
+
+
+## How to use the app
 
 Run MongoDB and Elasticsearch with Docker:
 
