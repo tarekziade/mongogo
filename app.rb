@@ -52,6 +52,14 @@ class SyncService < Sinatra::Base
     res
   end
 
+  get '/public_key' do
+    content_type 'text/plain'
+
+    File.open(File.join(File.dirname(__FILE__), 'certs', 'public_key.pem')) do |file|
+      file.read
+    end
+  end
+
   get '/' do
     send_file File.join(settings.public_folder, 'index.html')
   end

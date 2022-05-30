@@ -15,7 +15,12 @@ cd scripts
 ./loadsample.sh
 ```
 
-And set the "config" used by the connector with:
+Generate a pair of pub/priv keys:
+```
+ruby ./certs/generate_keys.rb
+```
+
+Set the "config" used by the connector with:
 ```
 ruby ./scripts/initialize.rb
 ```

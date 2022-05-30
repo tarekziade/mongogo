@@ -140,6 +140,8 @@ end
 # then base64
 DEFAULT_ENCRYPTION_KEY = '4bJmcAD0DW1wlUJ9epf2TwRn02nSRpKLiThYj07uPEg='
 DEFAULT_ENCRYPTION_IV = 'FN0qvggzrsp8Fuji2s1ktA=='
+PUBLIC_KEY_FILE = File.join(File.dirname(__FILE__), 'certs', 'public_key.pem')
+PRIVATE_KEY_FILE = File.join(File.dirname(__FILE__), 'certs', 'private_key.pem')
 
 # This class can be used by a sync Job to read some configuration info
 # Things like auth tokens, indexing rules, etc.
@@ -150,27 +152,20 @@ class ElasticConfig
     @index = 'ingest-config'
     @id = 1
     @client.index(index: @index, id: @id, body: {}) unless @client.indices.exists?(:index => @index)
+    @pub_key = OpenSSL::PKey::RSA.new(File.read(PUBLIC_KEY_FILE))
+    @priv_key = OpenSSL::PKey::RSA.new(File.read(PRIVATE_KEY_FILE))
     @cipher_key = Base64.decode64(encryption_key)
     @cipher_iv = Base64.decode64(encryption_iv)
   end
 
   def encrypt(data)
-    cipher = OpenSSL::Cipher.new('aes-256-cbc')
-    cipher.encrypt
-    cipher.key = @cipher_key
-    cipher.iv  = @cipher_iv
-    encrypted = cipher.update(data) + cipher.final
-    "encrypted:#{b64enc(encrypted)}"
+    "encrypted:#{b64enc(@pub_key.public_encrypt(data))}"
   end
 
   def decrypt(data)
     data = data.delete_prefix('encrypted:')
     data = Base64.decode64(data)
-    decipher = OpenSSL::Cipher.new('aes-256-cbc')
-    decipher.decrypt
-    decipher.key = @cipher_key
-    decipher.iv = @cipher_iv
-    decipher.update(data) + decipher.final
+    @priv_key.private_decrypt(data)
   end
 
   def b64enc(data)
