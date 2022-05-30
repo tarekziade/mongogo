@@ -15,6 +15,11 @@ cd scripts
 ./loadsample.sh
 ```
 
+And set the "config" used by the connector with:
+```
+ruby ./scripts/initialize.rb
+```
+
 The use the Makefile to run the service:
 ```
 make install

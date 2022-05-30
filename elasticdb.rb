@@ -3,6 +3,7 @@
 require 'elasticsearch'
 require 'faraday'
 require 'json'
+require 'active_support/core_ext/hash'
 
 require_relative 'events'
 
@@ -135,13 +136,23 @@ end
 # This class can be used by a sync Job to read some configuration info
 # Things like auth tokens, indexing rules, etc.
 class ElasticConfig
+  def initialize
+    @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
+    @client.cluster.health
+    @index = 'ingest-config'
+    @id = 1
+    @client.index(index: @index, id: @id, body: {  }) unless @client.indices.exists?(:index => @index)
+  end
+
   def read
-    {
-      auth_token: 'secret',
-      indexing_rules: {
-        index_target: 'airbnb',
-        bedrooms: 2
-      }
-    }
+    @client.search(index: @index)['hits']['hits'][0]['_source'].deep_transform_keys(&:to_sym)
+  end
+
+  def read_key(key)
+    read[key]
+  end
+
+  def write_key(key, value)
+    @client.update(index: @index, id: @id, body: {doc: {key => value}}, refresh: 'wait_for')
   end
 end
