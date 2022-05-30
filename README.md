@@ -31,6 +31,7 @@ config = ExternalElasticConfig.new('http://localhost:9292')
 config.write_key('auth_token', 'modified_secret', encrypted: true)
 ```
 
+see `scripts/update_config.rb`
 
 ## How to use the app
 
