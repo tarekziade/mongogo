@@ -19,6 +19,16 @@ class ModifyEvent
   end
 end
 
+class JobCreatedEvent
+  attr_reader :job_id, :index
+
+  def initialize(job_id, index)
+    @job_id = job_id
+    @data = { :index => index }
+  end
+end
+
+
 class FinishedEvent
   attr_reader :job_id
 

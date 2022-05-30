@@ -13,6 +13,16 @@
 
     <!-- Custom styles for this template -->
     <link href="/pricing.css" rel="stylesheet">
+    <style>
+      .blink{
+          animation:blink 500ms infinite alternate;
+      }
+
+      @keyframes blink {
+          from { opacity:1; background-color: '#FFCCCB'}
+          to { opacity:0.5; }
+      };
+    </style>
   </head>
 
   <body>
@@ -23,41 +33,12 @@
     </div>
 
     <div class="container">
-      <div class="card">
-        <div class="card-header">
-          Job UUID
-        </div>
-        <div class="card-body">
-          <h5 class="card-title">Currently vacuuming Mongo objects</h5>
-                        <div>  <img src="/fatty-kirby.gif"></img>
-            </div>
-            <p class="card-text">Bulk sync</p>
-            <div>
+      <h5 class="card-title">Currently vacuuming Mongo objects</h5>
+      <div><img src="/fatty-kirby.gif"></img></div>
+      <p></p>
+    </div>
 
-           <button type="button" class="btn btn-primary">
-            Extracted <span class="badge badge-light" id="extracted">0</span>
-           </button>
-           >>>>
-           <button type="button" class="btn btn-info">
-            Noop <span class="badge badge-light" id="noop">0</span>
-           </button>
-
-           <button type="button" class="btn btn-secondary">
-            Created <span class="badge badge-light" id="created">0</span>
-           </button>
-           <button type="button" class="btn btn-success">
-            Updated <span class="badge badge-light" id="updated">0</span>
-           </button>
-           <button type="button" class="btn btn-danger">
-            Deleted <span class="badge badge-light" id="deleted">0</span>
-           </button>
-
-           </div>
-
-
-          </p>
-        </div>
-      </div>
+    <div class="container" id="jobs">
     </div>
 
 
@@ -77,15 +58,60 @@
         text: 'Thumbnail'
       });
 
+      function createJobCard(jobId, jobStatus) {
+        var jobTemplate = [
+          '<div class="card">',
+          '<div class="card-header">',
+          jobStatus.title,
+          '</div>',
+          '<div class="card-body">',
+          '  <div>',
+          ' <button type="button" class="btn btn-primary">',
+          '  Extracted <span class="badge badge-light" id="extracted">' + jobStatus.extracted + '</span>',
+          ' </button>',
+          ' >>>>',
+          ' <button type="button" class="btn btn-info">',
+          '  Noop <span class="badge badge-light" id="noop">' + jobStatus.noop + '</span>',
+          ' </button>',
+          ' <button type="button" class="btn btn-secondary">',
+          '  Created <span class="badge badge-light" id="created">' + jobStatus.created + '</span>',
+          ' </button>',
+          ' <button type="button" class="btn btn-success">',
+          ' Updated <span class="badge badge-light" id="updated">' + jobStatus.updated + '</span>',
+          ' </button>',
+          ' <button type="button" class="btn btn-danger">',
+          '  Deleted <span class="badge badge-light" id="deleted">' + jobStatus.deleted + '</span>',
+          ' </button>',
+          ' </div>',
+          '</p>',
+          '</div>',
+          '</div>'
+        ];
+        return $(jobTemplate.join(''));
+      }
+
       setInterval( function() {
+        var jobs = $();
         $.getJSON("/status", function(status) {
-          $('#created').text(status.created);
-          $('#extracted').text(status.extracted);
-          $('#deleted').text(status.deleted);
-          $('#updated').text(status.updated);
-          $('#noop').text(status.noop);
+
+          for (const [jobId, jobStatus] of Object.entries(status.jobs)) {
+            jobs = jobs.add(createJobCard(jobId, jobStatus));
+        }
+
+          $('#jobs').html(jobs);
+
+          //blink('.blink');
         });
       }, 500);
+
+
+      function blink(selector){
+        $(selector).fadeOut('slow', function(){
+          $(this).fadeIn('slow', function(){
+          blink(this);
+        });
+      });
+     }
 
     </script>
   </body>

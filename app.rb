@@ -35,19 +35,19 @@ class SyncService < Sinatra::Base
     set :database, ElasticDB.new
     set :config, ElasticConfig.new
     set :public_folder, File.join(File.dirname(__FILE__), 'html')
-    set :status, { :extracted => 0, :created => 0, :updated => 0, :noop => 0, :deleted => 0 }
+    set :status, { :jobs => {} }
   end
 
   def event_callback(event)
     res = settings.database.push(event)
-    job = settings.jobs.get_job(event.job_id)
-    # XXX should be multi-job
-    settings.status = job.to_json
-    puts(job.to_s) unless job.finished
+    job_id = event.job_id
+    job = settings.jobs.get_job(job_id)
 
     if event.instance_of?(FinishedEvent)
       job.close
-      nil
+      settings.status[:jobs].delete(job_id)
+    else
+      settings.status[:jobs][job_id] = job.to_json
     end
     res
   end

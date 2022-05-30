@@ -74,6 +74,7 @@ class BulkSync
 
   def to_json(*_args)
     {
+      :title => "Bulk Sync #{@id[0..7]}",
       :extracted => @fetched,
       :created => @created,
       :updated => @updated,
@@ -97,6 +98,7 @@ class BulkSync
 
   def run
     Thread.abort_on_exception = true
+    @event_callback.call(JobCreatedEvent.new(@id, @index))
 
     @fetcher = Thread.new {
       begin
@@ -175,6 +177,22 @@ class StreamSync
     @configuration = configuration
     @streamer = nil
     @index = @configuration.read[:indexing_rules][:index_target]
+    @fetched = 0
+    @created = 0
+    @updated = 0
+    @noop = 0
+    @deleted = 0
+  end
+
+  def to_json(*_args)
+    {
+      :title => "Stream Sync #{@id[0..7]}",
+      :extracted => @fetched,
+      :created => @created,
+      :updated => @updated,
+      :noop => @noop,
+      :deleted => @deleted
+    }
   end
 
   def to_s
@@ -196,6 +214,7 @@ class StreamSync
 
   def run
     @status = WORKING
+    @event_callback.call(JobCreatedEvent.new(@id, @index))
 
     # config = @configuration.read
     Thread.abort_on_exception = true
@@ -210,7 +229,7 @@ class StreamSync
           doc = change[:fullDocument]
           doc = doc.transform_keys(&:to_sym)
           @event_callback.call(ChangedEvent.new(@id, { :document => doc, :index => @index }))
-
+          @created +=  1
           puts(to_s)
           # @event_callback.call(ChangedEvent.new(@id, change))
         end
