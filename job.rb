@@ -131,6 +131,8 @@ class BulkSync
     puts('Ingestion done.')
     @manager.end_job(@id)
     puts('Now starting the Stream')
+    # XXX adding 2 seconds for the UI demo
+    sleep(2)
     @manager.run_stream_sync(@data_source, @event_callback, @configuration)
   end
 
@@ -229,7 +231,8 @@ class StreamSync
           doc = change[:fullDocument]
           doc = doc.transform_keys(&:to_sym)
           @event_callback.call(ChangedEvent.new(@id, { :document => doc, :index => @index }))
-          @created +=  1
+          @created += 1
+          @fetched += 1
           puts(to_s)
           # @event_callback.call(ChangedEvent.new(@id, change))
         end

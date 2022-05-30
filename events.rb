@@ -28,7 +28,6 @@ class JobCreatedEvent
   end
 end
 
-
 class FinishedEvent
   attr_reader :job_id
 

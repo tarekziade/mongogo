@@ -55,9 +55,7 @@ class SyncService < Sinatra::Base
   get '/public_key' do
     content_type 'text/plain'
 
-    File.open(File.join(File.dirname(__FILE__), 'certs', 'public_key.pem')) do |file|
-      file.read
-    end
+    File.open(File.join(File.dirname(__FILE__), 'certs', 'public_key.pem'), &:read)
   end
 
   get '/' do
