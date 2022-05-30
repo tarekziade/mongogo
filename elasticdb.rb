@@ -3,6 +3,9 @@
 require 'elasticsearch'
 require 'faraday'
 require 'json'
+require 'openssl'
+require 'uri'
+require 'base64'
 require 'active_support/core_ext/hash'
 
 require_relative 'events'
@@ -133,26 +136,62 @@ class ElasticDB
   end
 end
 
+# use OpenSSL::Cipher::AES.new(256, :CBC).random_key and random_iv to generate those
+# then base64
+DEFAULT_ENCRYPTION_KEY = '4bJmcAD0DW1wlUJ9epf2TwRn02nSRpKLiThYj07uPEg='
+DEFAULT_ENCRYPTION_IV = 'FN0qvggzrsp8Fuji2s1ktA=='
+
 # This class can be used by a sync Job to read some configuration info
 # Things like auth tokens, indexing rules, etc.
 class ElasticConfig
-  def initialize
+  def initialize(encryption_key: DEFAULT_ENCRYPTION_KEY, encryption_iv: DEFAULT_ENCRYPTION_IV)
     @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
     @client.cluster.health
     @index = 'ingest-config'
     @id = 1
-    @client.index(index: @index, id: @id, body: {  }) unless @client.indices.exists?(:index => @index)
+    @client.index(index: @index, id: @id, body: {}) unless @client.indices.exists?(:index => @index)
+    @cipher_key = Base64.decode64(encryption_key)
+    @cipher_iv = Base64.decode64(encryption_iv)
+  end
+
+  def encrypt(data)
+    cipher = OpenSSL::Cipher.new('aes-256-cbc')
+    cipher.encrypt
+    cipher.key = @cipher_key
+    cipher.iv  = @cipher_iv
+    encrypted = cipher.update(data) + cipher.final
+    "encrypted:#{b64enc(encrypted)}"
+  end
+
+  def decrypt(data)
+    data = data.delete_prefix('encrypted:')
+    data = Base64.decode64(data)
+    decipher = OpenSSL::Cipher.new('aes-256-cbc')
+    decipher.decrypt
+    decipher.key = @cipher_key
+    decipher.iv = @cipher_iv
+    decipher.update(data) + decipher.final
+  end
+
+  def b64enc(data)
+    Base64.encode64(data).delete("\n")
   end
 
   def read
-    @client.search(index: @index)['hits']['hits'][0]['_source'].deep_transform_keys(&:to_sym)
+    @client.search(index: @index)['hits']['hits'][0]['_source'].deep_transform_keys(&:to_sym).map { |key, value|
+      value = decrypt(value) if value.instance_of?(String) && value.start_with?('encrypted:')
+      [key, value]
+    }.to_h
   end
 
   def read_key(key)
-    read[key]
+    value = read[key]
+    value = decrypt(value) if value.start_with?('encrypted:')
+    value
   end
 
-  def write_key(key, value)
-    @client.update(index: @index, id: @id, body: {doc: {key => value}}, refresh: 'wait_for')
+  def write_key(key, value, encrypted: false)
+    value = encrypt(value) if encrypted
+    @client.update(index: @index, id: @id, body: { doc: { key => value } }, refresh: 'wait_for')
   end
 end
