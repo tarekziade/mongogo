@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../elasticdb'
+require_relative '../elasticconfig'
 
 config = ElasticConfig.new
 config.write_key('auth_token', 'secret', encrypted: true)

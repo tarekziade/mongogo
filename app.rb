@@ -18,6 +18,7 @@ require 'sinatra/json'
 
 require_relative 'job'
 require_relative 'elasticdb'
+require_relative 'elasticconfig'
 require_relative 'mongodb'
 
 # Sinatra app
