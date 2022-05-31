@@ -7,7 +7,7 @@ populate-mongo:
 	cd scripts; ./loadsample.sh
 
 gen-certs:
-	rbenv ruby ./certs/generate_keys.rb
+	rbenv exec ruby ./certs/generate_keys.rb
 
 install:
 	rbenv install -s
