@@ -11,7 +11,7 @@ BATCH_SIZE = 100
 # This class is in charge of sending documents to Elastic
 # And also in charge of creating an index mapping
 class ElasticDB
-  MAPPING = JSON.load(File.read('dynamic_mapping.json'))
+  MAPPING = JSON.parse(File.read('dynamic_mapping.json'))
 
   def initialize
     @indices = Concurrent::Hash.new

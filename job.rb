@@ -148,11 +148,11 @@ class BulkSync
       seen_ids.push(doc_id)
       event_klass = @existing_ids.include?(doc_id) ? AddEvent : ModifyEvent
       # filter!
-      #if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
+      # if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
       @events_queue.push(event_klass.new(@id, { :document => doc, :index => index }))
       current += 1
       @fetched += 1
-      #end
+      # end
     end
 
     # XXX naive loop

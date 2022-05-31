@@ -8,7 +8,6 @@ require 'uri'
 require 'base64'
 require 'active_support/core_ext/hash'
 
-
 PUBLIC_KEY_FILE = File.join(File.dirname(__FILE__), 'certs', 'public_key.pem')
 PRIVATE_KEY_FILE = File.join(File.dirname(__FILE__), 'certs', 'private_key.pem')
 
