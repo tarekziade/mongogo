@@ -1,109 +1,67 @@
-# mongo
+# mongo POC
 
 ## How it works
 
 
-The MongoDB connector is a full ingestion event-based service that runs a
-couple of threads to keep a MongoDB and Elasticsearch collection in sync.
+The MongoDB connector is a full ingestion event-based, async service that keeps a MongoDB database
+and an Elasticsearch index in sync.
 
 It has two modes:
-- **Bulk sync** the MongoDB collection is scanned and mirrored in Elasticsearch -- that may include additions, updates, deletions
+
+- **Bulk sync** the MongoDB database is scanned and mirrored in an Elasticsearch index-- that may include additions, updates, deletions
 - **Stream sync** The service uses the MongoDB changes API to get notified on changes and propagates them into Elasticsearch in real time
 
-The data is indexed in an index that uses a dynamic mapping.
+The index is created with a dynamic mapping.
 
+Configuration data is picked by the connector in Elasticsearch on a specific index.
+Some values can be encrypted. The service has a public/private key pair and publishes its public key at `http://localhost:9292/public_key`.
+That key can be used to encrypt data that only the service can read (things like Elasticsearch API keys or OAuht tokens).
 
-## Configuration with encryption
+## How to start and use the service
 
-This demo also features a way to use Elasticsearch to safely store service
-configuration and session data. Some keys be encrypted and
-encryption is based on a pub/priv key so anyone with Elasticsearch access can
-**write** encrypted data for the service to read by picking the public key at
-`http://localhost:9292/public_key`. This makes the assumption that the
-indentity of the service is trusted.
+Use the Makefile for everything.
 
-To write a key for the service from anywhere:
-
-```
-require_relative 'elasticdb'
-
-config = ExternalElasticConfig.new('http://localhost:9292')
-config.write_key('auth_token', 'modified_secret', encrypted: true)
-```
-
-see `scripts/update_config.rb`
-
-This could be used to generate an Elasticsearch API key for the service
-that we can safely store into Elasticsearch without extra steps required
-for the service to use it.
-
-## How to use the app
-
-Run MongoDB and Elasticsearch with Docker:
-
-```
-cd scripts
-./runstack.sh
-```
-
-Make sure you populate it with the sample data:
-```
-cd scripts
-./loadsample.sh
-```
-
-Generate a pair of pub/priv keys:
-```
-ruby ./certs/generate_keys.rb
-```
-
-Set the "config" used by the connector with:
-```
-ruby ./scripts/initialize.rb
-```
-
-The use the Makefile to run the service:
+Install rbenv and all deps:
 ```
 make install
-make run
 ```
 
-And start a sync with `http://0.0.0.0:9292/start`
-
-  Install note:
+Install note:
 
   In case of an error when compiling Puma on macOS Catalina
   try https://github.com/puma/puma/issues/2544#issuecomment-771345173
   Use OpenSSL 1.1, not OpenSSL 3.x
 
 
+Run MongoDB and Elasticsearch with Docker:
+```
+make run-stack
+```
+
+Make sure you populate MongoDB with the sample data:
+```
+make populate-mongo
+```
+
+Generate a pair of pub/priv keys for the service (optional, you can use the defaults):
+```
+make gen-certs
+```
+
+Then, use the Makefile to run the service:
+```
+make run
+```
+
+And visit `http://0.0.0.0:9292`
+
 Once the sync ends, a "permanent" sync job starts.
 
 You can write data in MongoDB with:
 ```
-rbenv exec ruby scripts/mongo_writer.rb
+make mongo-writes
 ```
 
-This will add the data and should trigger an update to Elasticsearch in realtime.
+This will add the data and should trigger an update to Elasticsearch in realtime,
+and you should see it live in http://0.0.0.0:9292/status.html.
 
-
-## Actors
-
-- `SyncService` -- front end to trigger jobs
-- `Jobs` -- Handles jobs
-- `BulkSync` and `StreamSync` -- Sync jobs that drives a sync
-- `MongoBackend` -- the mongo class that grabs documents and sends them back
-- `ElasticDB` -- the documents DB we are pushing into
-- `ElasticConfig` -- the configuration DB that provides info, like auth tokensm indexing rules etc
-
-## How the service works
-
-- `SyncService` gets triggered on `GET /start`
-- `SyncService` creates a bulk sync job via `Jobs` and returns immediatly its id
-- `BulkSync` can pick running info from `ElasticConfig` to know how to run
-- `BulkSync` uses `MongoBackend` to get documents
-- `BulkSync` fills a queue
-- `ElasticDB` sends docs to Elasticsearch as bulk request by picking docs in the queue
-- `SyncService` starts a `StreamSync` when the `BulkSync` has finished working
-- `StreamSync` connects to the MongoDB changes API and streams documents to the queue
-- `ElasticDB` sends docs continuously to Elasticsearch

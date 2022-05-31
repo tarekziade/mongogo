@@ -1,3 +1,13 @@
+.phony: run-stack populate-mongo gen-certs install run
+
+run-stack:
+	cd scripts; ./runstack.sh
+
+populate-mongo:
+	cd scripts; ./loadsample.sh
+
+gen-certs:
+	rbenv ruby ./certs/generate_keys.rb
 
 install:
 	rbenv install -s
@@ -6,4 +16,3 @@ install:
 
 run:
 	rbenv exec bundle exec puma
-
