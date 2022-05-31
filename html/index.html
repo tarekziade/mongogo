@@ -24,49 +24,36 @@
 
     <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
       <h1 class="display-4">MongoDB Connector</h1>
-      <p class="lead">Feed your Elasticsearch cluster with fresh data from
-      MongoDB. Mongo has the best swag right after Elastic, so we need to make
-      them sync.</p>
+      <p class="lead">Feed your Elasticsearch cluster with fresh data from MongoDB.</p>
     </div>
-
     <div class="container">
-      <div class="card-deck mb-3 text-center">
-        <div class="card mb-4 box-shadow">
-          <div class="card-header">
-            <h4 class="my-0 font-weight-normal">Bulk Sync</h4>
-          </div>
-          <div class="card-body">
-            <h1 class="card-title pricing-card-title">$15 <small class="text-muted">/ mo</small></h1>
-            <ul class="list-unstyled mt-3 mb-4">
-              <li>Fetches your MongDB collection</li>
-              <li>Updates your Elasticsearch index</li>
-              <li>Makes your data Enterprise Search ready</li>
-              <li>Help center access</li>
-            </ul>
-            <button type="button" class="btn btn-lg btn-block btn-primary">Start Syncing</button>
-          </div>
-        </div>
-        <div class="card mb-4 box-shadow">
-          <div class="card-header">
-            <h4 class="my-0 font-weight-normal">Infinite Sync</h4>
-          </div>
-          <div class="card-body">
-            <h1 class="card-title pricing-card-title">$29 <small class="text-muted">/ mo</small></h1>
-            <ul class="list-unstyled mt-3 mb-4">
-              <li>Fetches your MongDB collection</li>
-              <li>Updates your Elasticsearch index</li>
-              <li>Makes your data Enterprise Search ready</li>
-              <li>Real-time updates</li>
-              <li>Help center access</li>
-            </ul>
-            <a href="/start" type="button" 
-              class="btn btn-lg btn-block btn-primary">
-              Start Streaming</a>
-          </div>
-        </div>
-      </div>
+   <form action="/start" method="POST">
+  <div class="form-group">
+    <label for="elasticSearchIndex">Elasticsearch Index</label>
+    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" placeholder="airbnb">
+    <small id="elasticSearchIndex" class="form-text text-muted">Target Elasticsearch index.</small>
+  </div>
+  <div class="form-group">
+    <label for="mongoDatabase">MongoDB Collection</label>
+    <input type="text" name="mongoDatabase" class="form-control" id="mongoDatabase"
+    aria-describedby="mongoDatabase" placeholder="sample_airbnb">
+    <small id="mongoDatabaseHelp" class="form-text text-muted">Source MongoDB Database</small>
+  </div>
+  <div class="form-group">
+    <label for="mongoPassword">MongoDB Password</label>
+    <input name="mongoPassword" type="password" class="form-control" id="mongoPassword">
+  </div>
+  <div class="form-group">
+    <label for="filterDSL">Fields Filtering Rules</label>
+    <textarea class="form-control" id="filters" rows="3">'bedrooms' >= 2</textarea>
+  </div>
+  <div class="form-group form-check">
+    <input type="checkbox" name="streamSync" class="form-check-input" id="streamSync" checked>
+    <label class="form-check-label" for="streamSync">Continuous Sync with Change Streams</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Start Syncing</button>
+  </form>
     </div>
-
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

@@ -69,14 +69,21 @@ class SyncService < Sinatra::Base
 
   # when using Puma, this creates a new thread -- which is not required since
   # we handle our own thread for the sync job, but does not hurt
-  get '/start' do
-    data_source = MongoBackend.new
+  post '/start' do
+    # Writing the config -- simulating an external service like Kibana
+    config = ExternalElasticConfig.new('http://localhost:9292')
 
-    # to be batched, and need to find a spot
-    index = settings.config.read[:indexing_rules][:index_target]
+    config.write_key('elasticSearchIndex', params[:elasticSearchIndex])
+    config.write_key('mongoDatabase', params[:mongoDatabase])
+    config.write_key('mongoPassword', params[:mongoPassword], encrypted: true)
+    config.write_key('streamSync', params[:streamSync] == 'on')
+
+    # now acting as the connector
+    mongo_database = MongoBackend.new(settings.config.read_key(:mongoDatabase))
+    index = settings.config.read_key(:elasticSearchIndex)
     existing_ids = settings.database.get_existing_ids(index)
 
-    settings.jobs.run_bulk_sync(data_source, method(:event_callback), settings.config, existing_ids)
+    settings.jobs.run_bulk_sync(mongo_database, method(:event_callback), settings.config, existing_ids)
     redirect('/status.html')
   end
 

@@ -65,7 +65,7 @@ class BulkSync
     @noop = 0
     @deleted = 0
     @config = @configuration.read
-    @index = @config[:indexing_rules][:index_target]
+    @index = @config[:elasticSearchIndex]
   end
 
   def to_s
@@ -140,7 +140,7 @@ class BulkSync
     @status = WORKING
     puts('Grabbing configuration')
     config = @configuration.read
-    index = config[:indexing_rules][:index_target]
+    index = config[:elasticSearchIndex]
     current = 0
     seen_ids = []
     @data_source.documents.each do |doc|
@@ -148,11 +148,11 @@ class BulkSync
       seen_ids.push(doc_id)
       event_klass = @existing_ids.include?(doc_id) ? AddEvent : ModifyEvent
       # filter!
-      if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
-        @events_queue.push(event_klass.new(@id, { :document => doc, :index => index }))
-        current += 1
-        @fetched += 1
-      end
+      #if !doc[:bedrooms].nil? && doc[:bedrooms] >= config[:indexing_rules][:bedrooms]
+      @events_queue.push(event_klass.new(@id, { :document => doc, :index => index }))
+      current += 1
+      @fetched += 1
+      #end
     end
 
     # XXX naive loop
@@ -178,7 +178,7 @@ class StreamSync
     @event_callback = event_callback
     @configuration = configuration
     @streamer = nil
-    @index = @configuration.read[:indexing_rules][:index_target]
+    @index = @configuration.read[:elasticSearchIndex]
     @fetched = 0
     @created = 0
     @updated = 0

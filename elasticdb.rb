@@ -20,7 +20,7 @@ class ElasticDB
   def initialize
     @indices = Concurrent::Hash.new
     @client = Elasticsearch::Client.new(host: '0.0.0.0', user: 'elastic', password: 'changeme')
-    puts(@client.cluster.health)
+    @client.cluster.health
     @mutex = Mutex.new
   end
 

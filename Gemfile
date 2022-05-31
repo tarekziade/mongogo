@@ -6,25 +6,25 @@ source 'https://rubygems.org'
 gem 'bundler', File.read(File.join(__dir__, '.bundler-version')).strip
 
 # Dependencies for connectors
-gem 'activesupport', '5.2.6'
-gem 'bson', '~> 4.3.0'
-gem 'mime-types', '= 3.1'
-gem 'tzinfo-data', '= 1.2022.1'
+gem 'activesupport'
+gem 'bson'
+gem 'mime-types'
+gem 'tzinfo-data'
 gem 'concurrent-ruby'
 
 group :test do
-  gem 'rspec-collection_matchers', '~> 1.2.0'
-  gem 'rspec-core', '~> 3.10.1'
+  gem 'rspec-collection_matchers'
+  gem 'rspec-core'
   gem 'rspec_junit_formatter'
   gem 'rubocop', '1.18.4'
-  gem 'rubocop-performance', '1.11.5'
+  gem 'rubocop-performance'
   gem 'rspec-mocks'
   gem 'webmock'
   gem 'rack-test'
   gem 'ruby-debug-ide'
   gem 'pry-remote'
   gem 'pry-nav'
-  gem 'debase', '0.2.5.beta2'
+  gem 'debase'
   gem 'timecop'
   gem 'simplecov', require: false
   gem 'simplecov-material'
@@ -42,11 +42,11 @@ gem 'hashie'
 gem 'puma'
 
 # Dependencies for oauth
-gem 'signet', '~> 0.16.0'
+gem 'signet'
 
 # Dependencies for mongodb
-gem 'mongo', '~> 2.6.4'
+gem 'mongo'
 
-gem 'elasticsearch', '~> 7.4.0'
+gem 'elasticsearch', '= 8.2.0'
 gem 'faker'
 

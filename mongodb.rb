@@ -6,10 +6,10 @@ Mongo::Logger.logger.level = ::Logger::FATAL
 
 # Mongo backend
 class MongoBackend
-  def initialize
+  def initialize(database = 'sample_airbnb')
     @client = Mongo::Client.new(['127.0.0.1:27021'],
                                 :connect => :direct,
-                                :database => 'sample_airbnb')
+                                :database => database)
 
     puts("Existing Databases #{@client.database_names}")
     puts('Existing Collections')
