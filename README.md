@@ -65,3 +65,16 @@ make mongo-writes
 This will add the data and should trigger an update to Elasticsearch in realtime,
 and you should see it live in http://0.0.0.0:9292/status.html.
 
+
+## How the code is organized
+
+- **app.rb** The Sinatra front-end
+- **html/** The HTML templates and files (based on Bootstrap)
+- **certs/** The pem keys and a key generator
+- **scripts/** The Docker Compose definition and some scripts to boostrap the stacks
+- **elasticconfig.rb** The key/value storage for storing configuration (with encryption)
+- **elasticdb.rb** The class that creates the ES index and sends bulk queries
+- **events.rb** Events class definitions
+- **job.rb** A jobs manager used to start/list/manage jobs + Jobs class (async)
+- **mongodb.rb** MongoDB backend. Fetches a full collection or watches its changes and emit events
+
