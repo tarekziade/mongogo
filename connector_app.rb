@@ -18,6 +18,37 @@ require_relative 'elasticconfig'
 require_relative 'elasticregistry'
 require_relative 'mongodb'
 
+FORM = %q(
+<div class="container">
+   <form action="/start" method="POST">
+  <div class="form-group">
+    <label for="elasticSearchIndex">Elasticsearch Index</label>
+    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" placeholder="airbnb">
+    <small id="elasticSearchIndex" class="form-text text-muted">Target Elasticsearch index.</small>
+  </div>
+  <div class="form-group">
+    <label for="mongoDatabase">MongoDB Collection</label>
+    <input type="text" name="mongoDatabase" class="form-control" id="mongoDatabase"
+    aria-describedby="mongoDatabase" placeholder="sample_airbnb">
+    <small id="mongoDatabaseHelp" class="form-text text-muted">Source MongoDB Database</small>
+  </div>
+  <div class="form-group">
+    <label for="mongoPassword">MongoDB Password</label>
+    <input name="mongoPassword" type="password" class="form-control" id="mongoPassword">
+  </div>
+  <div class="form-group">
+    <label for="filterDSL">Fields Filtering Rules</label>
+    <textarea class="form-control" id="filters" rows="3">'bedrooms' >= 2</textarea>
+  </div>
+  <div class="form-group form-check">
+    <input type="checkbox" name="streamSync" class="form-check-input" id="streamSync" checked>
+    <label class="form-check-label" for="streamSync">Continuous Sync with Change Streams</label>
+  </div>
+  <button type="submit" class="btn btn-primary">Start Syncing</button>
+  </form>
+    </div>
+)
+
 # Connectors app
 class ConnectorService
 
@@ -31,7 +62,11 @@ class ConnectorService
     @status = { :jobs => {} }
     @pub_key = File.open(File.join(File.dirname(__FILE__), 'certs', 'public_key.pem'), &:read)
     puts('Register as connector for MongoDB')
-    @registry.register(@id, { 'name': @name })
+    @registry.register(@id,
+                       { 'name': @name,
+                         'title': 'MongoDB Connector',
+                         'description': 'Feed your Elasticsearch cluster with fresh data from MongoDB.',
+                         'form': FORM })
     @called_back = false
   end
 
