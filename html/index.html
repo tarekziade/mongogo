@@ -21,8 +21,12 @@
       <h5 class="my-0 mr-md-auto font-weight-normal">🍌 Kibanana</h5>
     </div>
 
-
-    <div id="connectors"></div>
+    <div id="connectors">
+    <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+      <h1 class="display-4">No Connectors Registered!</h1>
+      <p class="lead">You know, if you want data you need a connector. Start one!</p>
+    </div>
+    </div>
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -55,15 +59,19 @@
 
       timer = setInterval( function() {
         var connectors = $();
+        var added = false;
         $.getJSON("/connectors", function(data) {
           for (const [i, connector] of Object.entries(data)) {
             // hack for demo, stop refreshing on first connector displayed
             if (timer) {
               clearInterval(timer);
             }
+            added = true;
             connectors = connectors.add(createConnectorForm(connector));
           }
-          $('#connectors').html(connectors);
+          if (added) {
+             $('#connectors').html(connectors);
+          }
         });
       }, 500);
 
