@@ -1,4 +1,4 @@
-.phony: run-stack populate-mongo gen-certs install run
+.phony: build-slides run-stack populate-mongo gen-certs install run
 
 run-stack:
 	cd scripts; ./runstack.sh
@@ -22,3 +22,6 @@ install:
 
 run-kibanana:
 	rbenv exec bundle exec puma
+
+build-slides:
+	npx @marp-team/marp-cli@latest slides/slides.md -o slides/output.html
