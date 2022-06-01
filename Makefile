@@ -3,6 +3,9 @@
 run-stack:
 	cd scripts; ./runstack.sh
 
+run-stack-ent-search:
+	cd scripts; ./runstack-enterprise-search.sh
+
 populate-mongo:
 	cd scripts; ./loadsample.sh
 
