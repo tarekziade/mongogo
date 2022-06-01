@@ -6,6 +6,9 @@ run-stack:
 run-connector:
 	rbenv exec ruby connector_app.rb
 
+mongo-writes:
+	rbenv exec ruby scripts/mongo_writer.rb
+
 populate-mongo:
 	cd scripts; ./loadsample.sh
 
