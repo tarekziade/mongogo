@@ -48,12 +48,20 @@ Generate a pair of pub/priv keys for the service (optional, you can use the defa
 make gen-certs
 ```
 
-Then, use the Makefile to run the service:
+Then, use the Makefile to run the Kibanana service:
 ```
-make run
+make run-kibanana
 ```
 
-And visit `http://0.0.0.0:9292`
+And visit Kibanana `http://0.0.0.0:9292`
+
+Now run the connector service in another terminal:
+```
+make run-connector
+```
+
+And the connector will register itself and appear in Kibanana.
+Now you can use it to sync data.
 
 Once the sync ends, a "permanent" sync job starts.
 

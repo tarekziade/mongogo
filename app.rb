@@ -19,6 +19,7 @@ require 'sinatra/json'
 require_relative 'job'
 require_relative 'elasticdb'
 require_relative 'elasticconfig'
+require_relative 'elasticregistry'
 require_relative 'mongodb'
 
 # Sinatra app
@@ -35,22 +36,9 @@ class SyncService < Sinatra::Base
     set :jobs, Jobs.new
     set :database, ElasticDB.new
     set :config, ElasticConfig.new
+    set :registry, ElasticRegistry.new
     set :public_folder, File.join(File.dirname(__FILE__), 'html')
     set :status, { :jobs => {} }
-  end
-
-  def event_callback(event)
-    res = settings.database.push(event)
-    job_id = event.job_id
-    job = settings.jobs.get_job(job_id)
-
-    if event.instance_of?(FinishedEvent)
-      job.close
-      settings.status[:jobs].delete(job_id)
-    else
-      settings.status[:jobs][job_id] = job.to_json
-    end
-    res
   end
 
   get '/public_key' do
@@ -63,9 +51,19 @@ class SyncService < Sinatra::Base
     send_file File.join(settings.public_folder, 'index.html')
   end
 
+  get '/connectors' do
+    json(settings.registry.list)
+  end
+
   get '/status' do
-    # XXX need to add job id
-    json(settings.status)
+    statuses = settings.config.read_key(:syncStatus)
+    if statuses.nil?
+      settings.config.write_key(:syncStatus, [])
+      return json({})
+    end
+    statuses = settings.config.read_key(:syncStatus)
+    statuses = { 'statuses': statuses } if statuses.nil?
+    json(statuses)
   end
 
   # when using Puma, this creates a new thread -- which is not required since
@@ -74,30 +72,16 @@ class SyncService < Sinatra::Base
     # Writing the config -- simulating an external service like Kibana
     config = ExternalElasticConfig.new('http://localhost:9292')
 
-    config.write_key('elasticSearchIndex', params[:elasticSearchIndex])
-    config.write_key('mongoDatabase', params[:mongoDatabase])
-    config.write_key('mongoPassword', params[:mongoPassword], encrypted: true)
-    config.write_key('streamSync', params[:streamSync] == 'on')
+    job = {
+      :elasticSearchIndex => params[:elasticSearchIndex],
+      :mongoDatabase => params[:mongoDatabase],
+      :mongoPassword => params[:mongoPassword],
+      :streamSync => params[:streamSync] == 'on',
+      :type => 'bulk'
+    }
 
-    # now acting as the connector
-    mongo_database = MongoBackend.new(settings.config.read_key(:mongoDatabase))
-    index = settings.config.read_key(:elasticSearchIndex)
-    existing_ids = settings.database.get_existing_ids(index)
-
-    settings.jobs.run_bulk_sync(mongo_database, method(:event_callback), settings.config, existing_ids)
+    # triggering the job
+    config.write_key(:syncJobs, [job])
     redirect('/status.html')
-  end
-
-  get '/result/:job_id' do
-    job_id = params[:job_id]
-    unless settings.jobs.include?(job_id)
-      status 404
-      return json({ "Not found": job_id })
-    end
-
-    json(
-      status: settings.jobs.status(job_id),
-      job_id: job.id
-    )
   end
 end
