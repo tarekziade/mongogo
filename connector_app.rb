@@ -66,7 +66,9 @@ class ConnectorService
                        { 'name': @name,
                          'title': 'MongoDB Connector',
                          'description': 'Feed your Elasticsearch cluster with fresh data from MongoDB.',
-                         'form': FORM })
+                         'form': FORM,
+                         'pub_key': @pub_key
+                       })
     @called_back = false
   end
 

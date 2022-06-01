@@ -95,9 +95,9 @@ end
 
 # This version does not know how to decrypt but can encrypt using the pub key provided by an url
 class ExternalElasticConfig < ElasticConfig
-  def initialize(service)
+  def initialize(pub_key)
     super()
-    @pub_key = OpenSSL::PKey::RSA.new(Faraday.get("#{service}/public_key").body)
+    @pub_key = OpenSSL::PKey::RSA.new(pub_key)
     @priv_key = nil
   end
 end

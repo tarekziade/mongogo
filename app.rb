@@ -41,12 +41,6 @@ class SyncService < Sinatra::Base
     set :status, { :jobs => {} }
   end
 
-  get '/public_key' do
-    content_type 'text/plain'
-
-    File.open(File.join(File.dirname(__FILE__), 'certs', 'public_key.pem'), &:read)
-  end
-
   get '/' do
     send_file File.join(settings.public_folder, 'index.html')
   end
@@ -66,11 +60,12 @@ class SyncService < Sinatra::Base
     json(statuses)
   end
 
-  # when using Puma, this creates a new thread -- which is not required since
-  # we handle our own thread for the sync job, but does not hurt
   post '/start' do
-    # Writing the config -- simulating an external service like Kibana
-    config = ExternalElasticConfig.new('http://localhost:9292')
+    pub_key = ''
+    settings.registry.list.each do |connector|
+      pub_key = connector[:value][:pub_key]
+    end
+    config = ExternalElasticConfig.new(pub_key)
 
     job = {
       :elasticSearchIndex => params[:elasticSearchIndex],
@@ -81,7 +76,7 @@ class SyncService < Sinatra::Base
     }
 
     # triggering the job
-    config.write_key(:syncJobs, [job])
+    config.write_key(:syncJobs, [job], encrypted: true)
     redirect('/status.html')
   end
 end
