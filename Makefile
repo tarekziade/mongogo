@@ -9,6 +9,9 @@ run-connector:
 mongo-writes:
 	rbenv exec ruby scripts/mongo_writer.rb
 
+run-stack-ent-search:
+	cd scripts; ./runstack-enterprise-search.sh
+
 populate-mongo:
 	cd scripts; ./loadsample.sh
 
