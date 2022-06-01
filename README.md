@@ -2,7 +2,6 @@
 
 ## How it works
 
-
 The MongoDB connector is a full ingestion event-based, async service that keeps a MongoDB database
 and an Elasticsearch index in sync.
 
@@ -15,7 +14,12 @@ The index is created with a dynamic mapping.
 
 Configuration data is picked by the connector in Elasticsearch on a specific index.
 Some values can be encrypted. The service has a public/private key pair and publishes its public key at `http://localhost:9292/public_key`.
-That key can be used to encrypt data that only the service can read (things like Elasticsearch API keys or OAuht tokens).
+That key can be used to encrypt data that only the service can read (things like Elasticsearch API keys or OAuht tokens)
+
+The connector is fully driven by Elasticsearch, it picks sync jobs there.
+
+The demo includes a front-end web app called "Kibanana", that let you drive connectors
+and see their statuses.
 
 ## How to start and use the service
 
