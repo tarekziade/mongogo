@@ -21,6 +21,9 @@ The index is created with a dynamic mapping.
 ## Kibanana
 
 Front end that displays registered connectors, adds sync jobs and display their status.
+Kibanana has no prior knowledge of connectors. Connectors are providing their own settings
+to get triggered.
+
 
 ## Adding a Sync Job
 
