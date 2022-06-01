@@ -5,7 +5,7 @@ size: 4:3
 
 # Goals
 
-Build a MongoDB connector that:
+Build a MongoDB connector from scratch that:
 
 - runs as a standalone service
 - can be discovered without prior setup
@@ -49,17 +49,27 @@ Build a MongoDB connector that:
 
 ---
 
-# Lessons learned
+# Lessons learned 1/3
 
 - Assymetric encryption solves the key exchange issue
 - Enforcing a framework for connectors is overkill
 - Continuous, event-based syncs is a cool idea 
 
+---
+
+# Lessons learned 2/3
+
 - Writing a MongoDB backend is very different from a MYSQL backend
+
 - It's all about the read/write contracts
  - How does a connector registers to get discovered
  - How does a connector picks configuration
- - How does Kibana triggers and display syncs
+ - How does Kibana triggers and display syncs in progress
+ - How does a connector create indices
+
+---
+
+# Lessons learned 3/3
 
 - We don't have any scaling issue
 
