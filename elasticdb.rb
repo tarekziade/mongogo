@@ -129,5 +129,21 @@ class ElasticDB
         }
       )
     end
+
+    # BYOEI Engine - Create the AS Engine so we have the data
+    puts("Adding the AS BYOEI engine")
+    conn = Faraday.new(url: 'http://localhost:3002')
+    conn.basic_auth('elastic', 'changeme')
+    payload = {
+      :name => "as-#{index}",
+      :search_index => {
+        :type => "elasticsearch",
+        :index_name => index
+      }
+    }.to_json
+
+    res = conn.post('/api/as/v0/engines', payload,
+                    {'Content-Type' => 'application/json'})
+    puts(res.status)
   end
 end

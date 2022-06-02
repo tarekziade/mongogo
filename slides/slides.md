@@ -22,7 +22,7 @@ Build a MongoDB connector from scratch that:
 - Everything is done through ES HTTP calls\*
 - The data pushed to ES can be used by App Search
 
-*\*Except for the AS engine creation*
+*\*Except for the AS engine creation - BYOEI*
 
 ---
 
