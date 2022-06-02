@@ -1,7 +1,13 @@
-.phony: run-stack populate-mongo gen-certs install run
+.phony: build-slides run-stack populate-mongo gen-certs install run
 
 run-stack:
 	cd scripts; ./runstack.sh
+
+run-connector:
+	rbenv exec ruby connector_app.rb
+
+mongo-writes:
+	rbenv exec ruby scripts/mongo_writer.rb
 
 run-stack-ent-search:
 	cd scripts; ./runstack-enterprise-search.sh
@@ -17,5 +23,8 @@ install:
 	- rbenv exec gem install bundler -v 2.3.10 && rbenv rehash
 	rbenv exec bundle install --jobs 1
 
-run:
+run-kibanana:
 	rbenv exec bundle exec puma
+
+build-slides:
+	npx @marp-team/marp-cli@latest slides/slides.md -o slides/output.html

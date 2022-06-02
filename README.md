@@ -1,21 +1,37 @@
 # mongo POC
 
-## How it works
-
-
 The MongoDB connector is a full ingestion event-based, async service that keeps a MongoDB database
 and an Elasticsearch index in sync.
 
-It has two modes:
+
+## Connector Service
+
+The **Connector** service is a standalone service. Once started, it registers
+itself in ES with its public key and waits for Sync Job.
+
+When a job is added in ES, it picks it and executes it and update its status in ES.
+
+The service has two types of sync jobs:
 
 - **Bulk sync** the MongoDB database is scanned and mirrored in an Elasticsearch index-- that may include additions, updates, deletions
 - **Stream sync** The service uses the MongoDB changes API to get notified on changes and propagates them into Elasticsearch in real time
 
 The index is created with a dynamic mapping.
 
-Configuration data is picked by the connector in Elasticsearch on a specific index.
-Some values can be encrypted. The service has a public/private key pair and publishes its public key at `http://localhost:9292/public_key`.
-That key can be used to encrypt data that only the service can read (things like Elasticsearch API keys or OAuht tokens).
+## Kibanana
+
+Front end that displays registered connectors, adds sync jobs and display their status.
+Kibanana has no prior knowledge of connectors. Connectors are providing their own settings
+to get triggered.
+
+
+## Adding a Sync Job
+
+Sync Jobs are JSON payload that are added to ES and may be encrypted when they contain secrets
+like auth tokens or passwords.
+
+Once they are pushed by Kibanana in ES, the connector service can pick them if it
+knows how to run them.
 
 ## How to start and use the service
 
@@ -48,12 +64,20 @@ Generate a pair of pub/priv keys for the service (optional, you can use the defa
 make gen-certs
 ```
 
-Then, use the Makefile to run the service:
+Then, use the Makefile to run the Kibanana service:
 ```
-make run
+make run-kibanana
 ```
 
-And visit `http://0.0.0.0:9292`
+And visit Kibanana `http://0.0.0.0:9292`
+
+Now run the connector service in another terminal:
+```
+make run-connector
+```
+
+And the connector will register itself and appear in Kibanana.
+Now you can use it to sync data.
 
 Once the sync ends, a "permanent" sync job starts.
 
@@ -68,7 +92,8 @@ and you should see it live in http://0.0.0.0:9292/status.html.
 
 ## How the code is organized
 
-- **app.rb** The Sinatra front-end
+- **app.rb** The Kibanana Sinatra front-end
+- **connector_app.rb** The connector service
 - **html/** The HTML templates and files (based on Bootstrap)
 - **certs/** The pem keys and a key generator
 - **scripts/** The Docker Compose definition and some scripts to boostrap the stacks

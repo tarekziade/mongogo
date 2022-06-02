@@ -48,14 +48,14 @@ end
 class BulkSync
   attr_reader :id, :status, :events_queue
 
-  def initialize(manager, data_source, event_callback, configuration, existing_ids)
+  def initialize(manager, data_source, event_callback, job_config, existing_ids)
     @manager = manager
     @data_source = data_source
     @id = SecureRandom.uuid
     @events_queue = Queue.new
     @status = INITIALIZED
     @event_callback = event_callback
-    @configuration = configuration
+    @config = job_config
     @dequeuer = nil
     @fetcher = nil
     @existing_ids = existing_ids
@@ -64,7 +64,6 @@ class BulkSync
     @updated = 0
     @noop = 0
     @deleted = 0
-    @config = @configuration.read
     @index = @config[:elasticSearchIndex]
   end
 
@@ -133,14 +132,13 @@ class BulkSync
     puts('Now starting the Stream')
     # XXX adding 2 seconds for the UI demo
     sleep(2)
-    @manager.run_stream_sync(@data_source, @event_callback, @configuration)
+    @manager.run_stream_sync(@data_source, @event_callback, @config)
   end
 
   def fetch_data
     @status = WORKING
-    puts('Grabbing configuration')
-    config = @configuration.read
-    index = config[:elasticSearchIndex]
+    puts('Grabbing job_config')
+    index = @config[:elasticSearchIndex]
     current = 0
     seen_ids = []
     @data_source.documents.each do |doc|
@@ -169,16 +167,16 @@ end
 class StreamSync
   attr_reader :id, :status
 
-  def initialize(manager, data_source, event_callback, configuration)
+  def initialize(manager, data_source, event_callback, job_config)
     @manager = manager
     @data_source = data_source
     @id = SecureRandom.uuid
     @events_queue = Queue.new
     @status = INITIALIZED
     @event_callback = event_callback
-    @configuration = configuration
+    @job_config = job_config
     @streamer = nil
-    @index = @configuration.read[:elasticSearchIndex]
+    @index = @job_config[:elasticSearchIndex]
     @fetched = 0
     @created = 0
     @updated = 0
@@ -218,7 +216,7 @@ class StreamSync
     @status = WORKING
     @event_callback.call(JobCreatedEvent.new(@id, @index))
 
-    # config = @configuration.read
+    # config = @job_config.read
     Thread.abort_on_exception = true
     @streamer = Thread.new {
       begin

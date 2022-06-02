@@ -94,7 +94,7 @@
         var jobs = $();
         $.getJSON("/status", function(status) {
 
-          for (const [jobId, jobStatus] of Object.entries(status.jobs)) {
+          for (const [jobId, jobStatus] of Object.entries(status.statuses.jobs)) {
             jobs = jobs.add(createJobCard(jobId, jobStatus));
         }
 

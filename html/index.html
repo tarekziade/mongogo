@@ -18,43 +18,15 @@
   <body>
 
     <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom box-shadow">
-      <h5 class="my-0 mr-md-auto font-weight-normal">Ingestion Overlords
-        Corporation</h5>
+      <h5 class="my-0 mr-md-auto font-weight-normal">🍌 Kibanana</h5>
     </div>
 
+    <div id="connectors">
     <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-      <h1 class="display-4">MongoDB Connector</h1>
-      <p class="lead">Feed your Elasticsearch cluster with fresh data from MongoDB.</p>
+      <h1 class="display-4">No Connectors Registered!</h1>
+      <p class="lead">You know, if you want data you need a connector. Start one!</p>
     </div>
-    <div class="container">
-   <form action="/start" method="POST">
-  <div class="form-group">
-    <label for="elasticSearchIndex">Elasticsearch Index</label>
-    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" placeholder="airbnb">
-    <small id="elasticSearchIndex" class="form-text text-muted">Target Elasticsearch index.</small>
-  </div>
-  <div class="form-group">
-    <label for="mongoDatabase">MongoDB Collection</label>
-    <input type="text" name="mongoDatabase" class="form-control" id="mongoDatabase"
-    aria-describedby="mongoDatabase" placeholder="sample_airbnb">
-    <small id="mongoDatabaseHelp" class="form-text text-muted">Source MongoDB Database</small>
-  </div>
-  <div class="form-group">
-    <label for="mongoPassword">MongoDB Password</label>
-    <input name="mongoPassword" type="password" class="form-control" id="mongoPassword">
-  </div>
-  <div class="form-group">
-    <label for="filterDSL">Fields Filtering Rules</label>
-    <textarea class="form-control" id="filters" rows="3">'bedrooms' >= 2</textarea>
-  </div>
-  <div class="form-group form-check">
-    <input type="checkbox" name="streamSync" class="form-check-input" id="streamSync" checked>
-    <label class="form-check-label" for="streamSync">Continuous Sync with Change Streams</label>
-  </div>
-  <button type="submit" class="btn btn-primary">Start Syncing</button>
-  </form>
     </div>
-
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -69,6 +41,41 @@
         fg: '#eceeef',
         text: 'Thumbnail'
       });
+
+      function createConnectorForm(info) {
+        info = info.value;
+
+        var formTemplate = [
+          '<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">',
+          '<h1 class="display-4">' + info.title + '</h1>',
+          '<p class="lead">' + info.description + '</p>',
+          '</div>',
+          info.form
+        ];
+        return $(formTemplate.join(''));
+      }
+
+      var timer = null;
+
+      timer = setInterval( function() {
+        var connectors = $();
+        var added = false;
+        $.getJSON("/connectors", function(data) {
+          for (const [i, connector] of Object.entries(data)) {
+            // hack for demo, stop refreshing on first connector displayed
+            if (timer) {
+              clearInterval(timer);
+            }
+            added = true;
+            connectors = connectors.add(createConnectorForm(connector));
+          }
+          if (added) {
+             $('#connectors').html(connectors);
+          }
+        });
+      }, 500);
+
+
     </script>
   </body>
 </html>
