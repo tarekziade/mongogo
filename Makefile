@@ -1,4 +1,4 @@
-.phony: build-slides run-stack populate-mongo gen-certs install run
+.phony: build-slides run-stack populate-mongo gen-certs install run-stack-ent-search deelete-all
 
 run-stack:
 	cd scripts; ./runstack.sh
@@ -28,3 +28,6 @@ run-kibanana:
 
 build-slides:
 	npx @marp-team/marp-cli@latest slides/slides.md -o slides/output.html
+
+delete-all:
+	./scripts/delete-all.sh

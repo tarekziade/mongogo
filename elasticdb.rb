@@ -45,6 +45,7 @@ class ElasticDB
         case event
         when AddEvent, ModifyEvent, ChangedEvent
           document = event.data[:document]
+          document['timestamp'] = Time.now
 
           body.push({ update: { _index: index, _id: doc_id } })
           # XXX for now
