@@ -3,45 +3,48 @@ theme: gaia
 size: 4:3
 ---
 
-# Goals
+# Spacetime Goals
 
 Build a MongoDB connector from scratch that:
 
 - runs as a standalone service
 - can be discovered without prior setup
+- securely grabs configuration data
+- grabs sync jobs
 - pushes document to ES directly
-- grab sync jobs
-- grab configuration info in a safe way
+- makes them available in App Search
 
 ---
 
 # Constraints
 
 - Elasticsearch is the sole database for everyone
-- The whole process can be converted into cURLs calls to ES
+- Everything is done through ES HTTP calls\*
 - The data pushed to ES can be used by App Search
 
+*\*Except for the AS engine creation*
+
 ---
 
-# What I built 1/2
+# What was built 1/2
 
-- A fully automated environment with ES, MongoDB replicas with sample data
+- Docker compose with ent-search, Kibana, ES, MongoDB replicas with sample data
 
-- A Connectors service that
-  - registers itself into ES and wait for work
+- A **Connector Service** that
+  - registers itself into ES and waits for work
   - creates an index with dynamic mapping
-  - ingests data from MongoDB in bulk and stream modes
-  - reports status in real-time in ES
+  - ingests data from MongoDB in *bulk* and *stream* modes
+  - displays sync progress in real-time in ES
 
 ---
 
-# What I built 2/2
+# What was built 2/2
 
-- A Javascript app that
+- A **Javascript App** that
+  - replaces Kibana for the POC
   - discovers connectors and displays them
   - let a user trigger syncs, safely send secrets
-  - display sync progression in real-time
-
+  - displays sync progression in real-time
 
 ---
 
@@ -51,7 +54,7 @@ Build a MongoDB connector from scratch that:
 
 # Lessons learned 1/2
 
-- Assymetric encryption offers zero-config discovery
+- Assymetric encryption offers safe zero-config discovery and setup
 - Continuous, event-based syncs is a cool idea
 - MongoDB != MySQL != GDrive
 
@@ -59,23 +62,22 @@ Build a MongoDB connector from scratch that:
 
 # Lessons learned 2/2
 
-- A connector is a series of ES HTTP calls
-- ES HTTP API Definitions > Framework
+- Connector == series of ES HTTP calls (could be cURL)
+- Documented ES HTTP API calls > Framework | It's all about standards
 - Current things to define:
-  - Register a Connector, List connectors
+  - Register a Connector, list connectors
   - Get configuration data
-  - Trigger a Sync
-  - Show progress in real-time
-  - Create indices, Index data
+  - Trigger Sync Jobs, show progress
+  - Create indices, index data
 
 ---
 
 # Deliverables, what's next
 
-- The POC is a fully working Connectors framework.
-- We can use it for experimenting on ideas, or trying to build new backends
-- We can cherry-pick stuff for the RoR app
+- The POC is a fully working Connectors framework
+- Can be used for experiments, build new backends
+- The MongoDB connector can be refactored/recycled in the RoR app
+- Registration, Status info etc is ad-hoc data in ES, needs structure (ECS?)
 
 => code: https://github.com/tarekziade/mongogo
-
 
