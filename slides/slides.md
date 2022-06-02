@@ -30,17 +30,17 @@ Build a MongoDB connector from scratch that:
 - A Connectors service that
   - registers itself into ES and wait for work
   - creates an index with dynamic mapping
-  - ingest data from MongoDB in bulk and stream modes
-  - report status in real-time in ES
+  - ingests data from MongoDB in bulk and stream modes
+  - reports status in real-time in ES
 
 ---
 
 # What I built 2/2
 
 - A Javascript app that
- - discovers connectors and displays them
- - let a use trigger syncs, safely send secrets
- - display sync progression in real-time
+  - discovers connectors and displays them
+  - let a user trigger syncs, safely send secrets
+  - display sync progression in real-time
 
 
 ---
@@ -49,36 +49,32 @@ Build a MongoDB connector from scratch that:
 
 ---
 
-# Lessons learned 1/3
+# Lessons learned 1/2
 
-- Assymetric encryption solves the key exchange issue
-- Enforcing a framework for connectors is overkill
-- Continuous, event-based syncs is a cool idea 
-
----
-
-# Lessons learned 2/3
-
-- Writing a MongoDB backend is very different from a MYSQL backend
-
-- It's all about the read/write contracts
- - How does a connector registers to get discovered
- - How does a connector picks configuration
- - How does Kibana triggers and display syncs in progress
- - How does a connector create indices
+- Assymetric encryption offers zero-config discovery
+- Continuous, event-based syncs is a cool idea
+- MongoDB != MySQL != GDrive
 
 ---
 
-# Lessons learned 3/3
+# Lessons learned 2/2
 
-- We don't have any scaling issue
+- A connector is a series of ES HTTP calls
+- ES HTTP API Definitions > Framework
+- Current things to define:
+  - Register a Connector, List connectors
+  - Get configuration data
+  - Trigger a Sync
+  - Show progress in real-time
+  - Create indices, Index data
 
 ---
 
 # Deliverables, what's next
 
-The POC is a fully working Connectors framework.
-We can use it for experimenting on ideas, or trying to build a new backend.
+- The POC is a fully working Connectors framework.
+- We can use it for experimenting on ideas, or trying to build new backends
+- We can cherry-pick stuff for the RoR app
 
 => code: https://github.com/tarekziade/mongogo
 
