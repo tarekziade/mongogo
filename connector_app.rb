@@ -23,7 +23,7 @@ FORM = %q(
    <form action="/start" method="POST">
   <div class="form-group">
     <label for="elasticSearchIndex">Elasticsearch Index</label>
-    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" placeholder="airbnb">
+    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" placeholder="search-airbnb">
     <small id="elasticSearchIndex" class="form-text text-muted">Target Elasticsearch index.</small>
   </div>
   <div class="form-group">
