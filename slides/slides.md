@@ -63,11 +63,11 @@ Build a MongoDB connector from scratch that:
 
 # Lessons learned 2/2
 
-- It's all about defining an API in ES to:
-  - Register a Connector
+- It's all about defining a standard in ES to:
+  - Register a connector
   - List connectors
   - Get/Set configuration & session data
-  - Trigger Sync Jobs, show progress
+  - Trigger Sync Jobs, track progress
   - Create indices, engines and index data
 
 ---
