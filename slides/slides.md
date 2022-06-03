@@ -63,13 +63,12 @@ Build a MongoDB connector from scratch that:
 
 # Lessons learned 2/2
 
-- Connector == series of ES HTTP calls (could be cURL)
-- Documented ES HTTP API calls > Framework | It's all about standards
-- Current things to define:
-  - Register a Connector, list connectors
-  - Get configuration data
+- It's all about defining an API in ES to:
+  - Register a Connector
+  - List connectors
+  - Get/Set configuration & session data
   - Trigger Sync Jobs, show progress
-  - Create indices, index data
+  - Create indices, engines and index data
 
 ---
 
