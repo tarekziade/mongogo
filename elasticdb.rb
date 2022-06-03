@@ -5,6 +5,7 @@ require 'faraday'
 require 'json'
 require 'openssl'
 require_relative 'events'
+require 'time'
 
 BATCH_SIZE = 100
 
@@ -45,7 +46,7 @@ class ElasticDB
         case event
         when AddEvent, ModifyEvent, ChangedEvent
           document = event.data[:document]
-          document['timestamp'] = Time.now
+          document[:timestamp] = Time.now.iso8601
 
           body.push({ update: { _index: index, _id: doc_id } })
           # XXX for now

@@ -23,13 +23,13 @@ FORM = %q(
    <form action="/start" method="POST">
   <div class="form-group">
     <label for="elasticSearchIndex">Elasticsearch Index</label>
-    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" placeholder="search-airbnb">
+    <input name="elasticSearchIndex" type="text" class="form-control" id="elasticSearchIndex" aria-describedby="elasticSearchIndex" value="search-airbnb" placeholder="search-airbnb">
     <small id="elasticSearchIndex" class="form-text text-muted">Target Elasticsearch index.</small>
   </div>
   <div class="form-group">
     <label for="mongoDatabase">MongoDB Collection</label>
     <input type="text" name="mongoDatabase" class="form-control" id="mongoDatabase"
-    aria-describedby="mongoDatabase" placeholder="sample_airbnb">
+    aria-describedby="mongoDatabase" placeholder="sample_airbnb" value="sample_airbnb">
     <small id="mongoDatabaseHelp" class="form-text text-muted">Source MongoDB Database</small>
   </div>
   <div class="form-group">

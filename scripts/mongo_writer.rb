@@ -8,7 +8,7 @@ client = Mongo::Client.new(['127.0.0.1:27021'],
 
 collection = client[:listingsAndReviews]
 
-10.times {
+10000.times {
   doc_id = rand.to_s[2..11]
 
   doc = {
@@ -20,5 +20,4 @@ collection = client[:listingsAndReviews]
           }
 
   collection.insert_one(doc)
-  sleep(0.2)
 }

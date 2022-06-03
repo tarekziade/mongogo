@@ -1,4 +1,4 @@
-.phony: build-slides run-stack populate-mongo gen-certs install run-stack-ent-search deelete-all
+.phony: build-slides run-stack populate-mongo gen-certs install run-stack-ent-search delete-all
 
 run-stack:
 	cd scripts; ./runstack.sh
@@ -14,6 +14,10 @@ run-stack-ent-search:
 
 populate-mongo:
 	cd scripts; ./loadsample.sh
+
+kill-docker:
+	docker stop `docker ps -qa`
+	docker rm `docker ps -qa`
 
 gen-certs:
 	rbenv exec ruby ./certs/generate_keys.rb
@@ -31,3 +35,4 @@ build-slides:
 
 delete-all:
 	./scripts/delete-all.sh
+	- cd scripts; ./loadsample.sh

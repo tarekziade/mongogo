@@ -54,6 +54,7 @@ Build a MongoDB connector from scratch that:
 
 # Lessons learned 1/2
 
+- BYOEI just works!
 - Assymetric encryption offers safe zero-config discovery and setup
 - Continuous, event-based syncs is a cool idea
 - MongoDB != MySQL != GDrive
