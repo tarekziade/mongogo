@@ -8,6 +8,14 @@ client = Mongo::Client.new(['127.0.0.1:27021'],
 
 collection = client[:listingsAndReviews]
 
+deletion = 0
+collection.find.each do |doc|
+  deletion = deletion + 1
+  collection.delete_one(doc)
+  break if deletion == 300
+end
+
+
 10000.times {
   doc_id = rand.to_s[2..11]
 
